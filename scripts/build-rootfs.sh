@@ -1,9 +1,28 @@
-#!/bin/bash -e
+#!/bin/bash
 
 ARCH="arm64"
-echo -e "\033[47;36m set default ARCH=arm64...... \033[0m"
 
-TARGET_ROOTFS_DIR="/root/rootfs"
+set -eE 
+trap 'echo Error: in $0 on line $LINENO' ERR
+
+if [ "$(id -u)" -ne 0 ]; then 
+    echo "Please run as root"
+    exit 1
+fi
+
+cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
+mkdir -p build && cd build
+
+if [ -f rootfs.tar.gz ]; then
+    exit 0
+fi
+
+# These env vars can cause issues with chroot
+unset TMP
+unset TEMP
+unset TMPDIR
+
+TARGET_ROOTFS_DIR="rootfs"
 sudo rm -rf $TARGET_ROOTFS_DIR/
 
 if [ ! -d $TARGET_ROOTFS_DIR ] ; then
@@ -15,13 +34,13 @@ if [ ! -d $TARGET_ROOTFS_DIR ] ; then
     fi
     sudo tar -xzf ubuntu-base-22.04.2-base-$ARCH.tar.gz -C $TARGET_ROOTFS_DIR/
     sudo cp -b /etc/resolv.conf $TARGET_ROOTFS_DIR/etc/resolv.conf
-    sudo cp sources.list $TARGET_ROOTFS_DIR/etc/apt/sources.list
+    sudo cp ../packages/rootfs/sources.list $TARGET_ROOTFS_DIR/etc/apt/sources.list
 
 	sudo cp -b /usr/bin/qemu-aarch64-static $TARGET_ROOTFS_DIR/usr/bin/
 fi
 
 finish() {
-    ./ch-mount.sh -u $TARGET_ROOTFS_DIR
+    ../scripts/ch-mount.sh -u $TARGET_ROOTFS_DIR
     echo -e "error exit"
     exit -1
 }
@@ -29,7 +48,7 @@ trap finish ERR
 
 echo -e "\033[47;36m Change root.................... \033[0m"
 
-./ch-mount.sh -m $TARGET_ROOTFS_DIR
+../scripts/ch-mount.sh -m $TARGET_ROOTFS_DIR
 
 cat <<EOF | sudo chroot $TARGET_ROOTFS_DIR/
 
@@ -113,12 +132,15 @@ sync
 
 EOF
 
-./ch-mount.sh -u $TARGET_ROOTFS_DIR
+../scripts/ch-mount.sh -u $TARGET_ROOTFS_DIR
 
 DATE=$(date +%Y%m%d)
 echo -e "\033[47;36m Run tar pack ${TARGET_ROOTFS_DIR}.tar.gz \033[0m"
-sudo tar zcf ${TARGET_ROOTFS_DIR}.tar.gz $TARGET_ROOTFS_DIR
+# sudo tar zcf ${TARGET_ROOTFS_DIR}.tar.gz $TARGET_ROOTFS_DIR
+mkdir host
+cp -rfp ${TARGET_ROOTFS_DIR}/* host
 
+cd host && tar zcf ../${TARGET_ROOTFS_DIR}.tar.gz . && cd ..
 # sudo rm $TARGET_ROOTFS_DIR -r
 
 echo -e "\033[47;36m normal exit \033[0m"

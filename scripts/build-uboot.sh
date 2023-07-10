@@ -31,7 +31,7 @@ if [ ! -d u-boot-"${VENDOR}" ]; then
         cp -r ../packages/u-boot/u-boot-"${VENDOR}"/debian u-boot-"${VENDOR}"
     fi
 fi
-
+cp -r ../packages/u-boot/u-boot-"${VENDOR}"/debian u-boot-"${VENDOR}"
 cd u-boot-"${VENDOR}"
 
 # Compile u-boot into a deb package
