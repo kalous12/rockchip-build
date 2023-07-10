@@ -17,10 +17,12 @@ if [ ! -d linux ]; then
     cp ../packages/linux/config/* linux/arch/arm64/configs
     cp ../packages/linux/dtc/* linux/arch/arm64/boot/dts/rockchip
 fi
+
+echo 1 > linux/.version
 cd linux
 
 # Compile kernel into a deb package
-make rk3568_lubancat2_defconfig ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
-make bindeb-pkg ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j32
+make rk3568_lubancat2_defconfig ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- 
+make bindeb-pkg ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j32 KERNELRELEASE=6.4.0 
 
 rm -f ../*.buildinfo ../*.changes

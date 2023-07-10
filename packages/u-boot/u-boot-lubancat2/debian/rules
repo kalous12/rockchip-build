@@ -13,20 +13,20 @@ else
 NJOBS := -j $(shell nproc)
 endif
 
-BOARD = evb-rk3568
+BOARD = lubancat2
 BUILD_DIR = debian/build/${BOARD}
 TEMP_DIR = debian/tmp/${BOARD}
 BINARY_DIR = ${TEMP_DIR}/usr/lib/u-boot-${BOARD}
 DOC_DIR = ${TEMP_DIR}/usr/share/doc/u-boot-${BOARD}
 
-evb-rk3568 : 
+lubancat2 : 
 	@mkdir -p debian/build/$@
 	
 	make O=${BUILD_DIR} \
 	  CROSS_COMPILE=$(CROSS_COMPILE) \
 	  ARCH=arm \
 	  $(NJOBS) \
-	  $@_defconfig
+	  evb-rk3568_defconfig
 
 	make O=${BUILD_DIR} \
 	  CROSS_COMPILE=$(CROSS_COMPILE) \
@@ -36,9 +36,9 @@ evb-rk3568 :
 	  BL31=debian/rkbin/rk3568_bl31_v1.36.elf \
 	  ROCKCHIP_TPL=debian/rkbin/rk3568_ddr_1560MHz_v1.14.bin
 
-build: evb-rk3568 
+build: lubancat2 
 
-binary-evb-rk3568:
+binary-lubancat2:
 	rm -rf ${TEMP_DIR}
 	mkdir -m 755 -p ${BINARY_DIR}
 	cp ${BUILD_DIR}/u-boot.itb ${BINARY_DIR}/u-boot.itb
@@ -55,7 +55,7 @@ binary-evb-rk3568:
 	dpkg-gencontrol -pu-boot-${BOARD} -P"${TEMP_DIR}"
 	dpkg --build "${TEMP_DIR}" ..
 
-binary-arch: binary-evb-rk3568
+binary-arch: binary-lubancat2
 
 binary: binary-arch
 

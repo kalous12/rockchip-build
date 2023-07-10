@@ -11,12 +11,13 @@ fi
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p build && cd build
 
-# if [[ -z ${VENDOR} ]]; then
-#     echo "Error: VENDOR is not set"
-#     exit 1
-# fi
+VENDOR=lubancat2
 
-VENDOR=mainline-v2023.04
+if [[ -z ${VENDOR} ]]; then
+    echo "Error: VENDOR is not set"
+    exit 1
+fi
+
 
 if [ ! -d u-boot-"${VENDOR}" ]; then
     # shellcheck source=/dev/null
@@ -31,6 +32,7 @@ if [ ! -d u-boot-"${VENDOR}" ]; then
         cp -r ../packages/u-boot/u-boot-"${VENDOR}"/debian u-boot-"${VENDOR}"
     fi
 fi
+
 cp -r ../packages/u-boot/u-boot-"${VENDOR}"/debian u-boot-"${VENDOR}"
 cd u-boot-"${VENDOR}"
 
