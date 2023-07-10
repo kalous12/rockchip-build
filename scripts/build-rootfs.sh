@@ -1,7 +1,5 @@
 #!/bin/bash
 
-ARCH="arm64"
-
 set -eE 
 trap 'echo Error: in $0 on line $LINENO' ERR
 
@@ -13,7 +11,7 @@ fi
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p build && cd build
 
-if [ -f rootfs.tar.gz ]; then
+if [[ -f ubuntu-22.04.2-preinstalled-server-arm64.rootfs.tar.xz && -f ubuntu-22.04.2-preinstalled-desktop-arm64.rootfs.tar.xz ]]; then
     exit 0
 fi
 
@@ -22,49 +20,122 @@ unset TMP
 unset TEMP
 unset TMPDIR
 
-TARGET_ROOTFS_DIR="rootfs"
-sudo rm -rf $TARGET_ROOTFS_DIR/
+# Prevent dpkg interactive dialogues
+export DEBIAN_FRONTEND=noninteractive
 
-if [ ! -d $TARGET_ROOTFS_DIR ] ; then
-    sudo mkdir -p $TARGET_ROOTFS_DIR
+# Debootstrap options
+arch=arm64
+release=jammy
+mirror=http://ports.ubuntu.com/ubuntu-ports
+chroot_dir=rootfs
+overlay_dir=../overlay
 
-    if [ ! -e 	ubuntu-base-22.04.2-base-$ARCH.tar.gz ]; then
-        echo "\033[36m wget 	ubuntu-base-22.04.2-base-"$ARCH".tar.gz \033[0m"
-        wget -c http://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.2-base-$ARCH.tar.gz
-    fi
-    sudo tar -xzf ubuntu-base-22.04.2-base-$ARCH.tar.gz -C $TARGET_ROOTFS_DIR/
-    sudo cp -b /etc/resolv.conf $TARGET_ROOTFS_DIR/etc/resolv.conf
-    sudo cp ../packages/rootfs/sources.list $TARGET_ROOTFS_DIR/etc/apt/sources.list
+# Clean chroot dir and make sure folder is not mounted
+umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true
+umount -lf ${chroot_dir}/* 2> /dev/null || true
+rm -rf ${chroot_dir}
+mkdir -p ${chroot_dir}
 
-	sudo cp -b /usr/bin/qemu-aarch64-static $TARGET_ROOTFS_DIR/usr/bin/
-fi
+# Install the base system into a directory 
+debootstrap --arch ${arch} ${release} ${chroot_dir} ${mirror}
 
-finish() {
-    ../scripts/ch-mount.sh -u $TARGET_ROOTFS_DIR
-    echo -e "error exit"
-    exit -1
-}
-trap finish ERR
+# Use a more complete sources.list file 
+cat > ${chroot_dir}/etc/apt/sources.list << EOF
+# See http://help.ubuntu.com/community/UpgradeNotes for how to upgrade to
+# newer versions of the distribution.
+deb ${mirror} ${release} main restricted
+# deb-src ${mirror} ${release} main restricted
 
-echo -e "\033[47;36m Change root.................... \033[0m"
+## Major bug fix updates produced after the final release of the
+## distribution.
+deb ${mirror} ${release}-updates main restricted
+# deb-src ${mirror} ${release}-updates main restricted
 
-../scripts/ch-mount.sh -m $TARGET_ROOTFS_DIR
+## N.B. software from this repository is ENTIRELY UNSUPPORTED by the Ubuntu
+## team. Also, please note that software in universe WILL NOT receive any
+## review or updates from the Ubuntu security team.
+deb ${mirror} ${release} universe
+# deb-src ${mirror} ${release} universe
+deb ${mirror} ${release}-updates universe
+# deb-src ${mirror} ${release}-updates universe
 
-cat <<EOF | sudo chroot $TARGET_ROOTFS_DIR/
+## N.B. software from this repository is ENTIRELY UNSUPPORTED by the Ubuntu
+## team, and may not be under a free licence. Please satisfy yourself as to
+## your rights to use the software. Also, please note that software in
+## multiverse WILL NOT receive any review or updates from the Ubuntu
+## security team.
+deb ${mirror} ${release} multiverse
+# deb-src ${mirror} ${release} multiverse
+deb ${mirror} ${release}-updates multiverse
+# deb-src ${mirror} ${release}-updates multiverse
 
-export APT_INSTALL="apt-get install -fy --allow-downgrades"
+## N.B. software from this repository may not have been tested as
+## extensively as that contained in the main release, although it includes
+## newer versions of some applications which may provide useful features.
+## Also, please note that software in backports WILL NOT receive any review
+## or updates from the Ubuntu security team.
+deb ${mirror} ${release}-backports main restricted universe multiverse
+# deb-src ${mirror} ${release}-backports main restricted universe multiverse
 
-export LC_ALL=C.UTF-8
+deb ${mirror} ${release}-security main restricted
+# deb-src ${mirror} ${release}-security main restricted
+deb ${mirror} ${release}-security universe
+# deb-src ${mirror} ${release}-security universe
+deb ${mirror} ${release}-security multiverse
+# deb-src ${mirror} ${release}-security multiverse
+EOF
 
-apt-get -y update
-apt-get -f -y upgrade
+# Mount the temporary API filesystems
+mkdir -p ${chroot_dir}/{proc,sys,run,dev,dev/pts}
+mount -t proc /proc ${chroot_dir}/proc
+mount -t sysfs /sys ${chroot_dir}/sys
+mount -o bind /dev ${chroot_dir}/dev
+mount -o bind /dev/pts ${chroot_dir}/dev/pts
 
-DEBIAN_FRONTEND=noninteractive apt install -y rsyslog sudo dialog ntp evtest acpid
 
-\${APT_INSTALL} net-tools openssh-server ifupdown alsa-utils ntp network-manager gdb inetutils-ping libssl-dev \
-    vsftpd tcpdump can-utils i2c-tools strace vim iperf3 ethtool netplan.io toilet htop pciutils usbutils curl \
-    whiptail gnupg bc xinput gdisk parted gcc sox libsox-fmt-all gpiod libgpiod-dev python3-pip python3-libgpiod \
-    guvcview u-boot-tools
+# Download and update packages
+cat << EOF | chroot ${chroot_dir} /bin/bash
+set -eE 
+trap 'echo Error: in $0 on line $LINENO' ERR
+
+# Update localisation files
+locale-gen en_US.UTF-8
+update-locale LANG="en_US.UTF-8"
+
+# Download and update installed packages
+apt-get -y update && apt-get -y upgrade && apt-get -y dist-upgrade
+
+# Download and install generic packages
+apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools cloud-init \
+bash-completion man-db manpages nano gnupg initramfs-tools armbian-firmware \
+ubuntu-drivers-common ubuntu-server dosfstools mtools parted ntfs-3g zip atop \
+p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
+net-tools wireless-tools openssh-client openssh-server wpasupplicant ifupdown \
+pigz wget curl lm-sensors bluez gdisk usb-modeswitch usb-modeswitch-data make \
+gcc libc6-dev bison libssl-dev flex flash-kernel fake-hwclock rfkill wireless-regdb
+
+# Remove cryptsetup and needrestart
+apt-get -y remove cryptsetup needrestart
+
+# Clean package cache
+apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
+EOF
+
+# Swapfile
+cat << EOF | chroot ${chroot_dir} /bin/bash
+set -eE 
+trap 'echo Error: in $0 on line $LINENO' ERR
+
+dd if=/dev/zero of=/tmp/swapfile bs=1024 count=2097152
+chmod 600 /tmp/swapfile
+mkswap /tmp/swapfile
+mv /tmp/swapfile /swapfile
+EOF
+
+# Swapfile
+cat << EOF | chroot ${chroot_dir} /bin/bash
+set -eE 
+trap 'echo Error: in $0 on line $LINENO' ERR
 
 HOST=lubancat
 
@@ -129,18 +200,11 @@ apt-get clean
 rm -rf /var/lib/apt/lists/*
 
 sync
-
 EOF
 
-../scripts/ch-mount.sh -u $TARGET_ROOTFS_DIR
+# Umount temporary API filesystems
+umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true
+umount -lf ${chroot_dir}/* 2> /dev/null || true
 
-DATE=$(date +%Y%m%d)
-echo -e "\033[47;36m Run tar pack ${TARGET_ROOTFS_DIR}.tar.gz \033[0m"
-# sudo tar zcf ${TARGET_ROOTFS_DIR}.tar.gz $TARGET_ROOTFS_DIR
-mkdir host
-cp -rfp ${TARGET_ROOTFS_DIR}/* host
-
-cd host && tar zcf ../${TARGET_ROOTFS_DIR}.tar.gz . && cd ..
-# sudo rm $TARGET_ROOTFS_DIR -r
-
-echo -e "\033[47;36m normal exit \033[0m"
+# Tar the entire rootfs
+cd ${chroot_dir} && XZ_OPT="-3 -T0" tar -cpJf ../ubuntu-22.04.2-preinstalled-server-arm64.rootfs.tar.xz . && cd ..
