@@ -119,10 +119,12 @@ if [[ ${LAUNCHPAD} != "Y" ]]; then
 fi
 
 if [[ ${LAUNCHPAD} != "Y" ]]; then
-    eval "${DOCKER}" ./scripts/build-u-boot.sh
+    echo uboot finish!!!
+    # eval "${DOCKER}" ./scripts/build-uboot.sh
 fi
 
-eval "${DOCKER}" ./scripts/build-rootfs.sh
+echo rootfs finish!!!
+# eval "${DOCKER}" ./scripts/build-rootfs.sh
 eval "${DOCKER}" ./scripts/config-image.sh
 
 exit 0

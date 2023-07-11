@@ -62,7 +62,7 @@ if [[ -z ${VENDOR} ]]; then
 fi
 
 if [[ "${BOARD}" == lubancat2 ]]; then
-    DEVICE_TREE=rk3568-lubancat2.dtb
+    DEVICE_TREE=rk3568-lubancat-2.dtb
     OVERLAY_PREFIX=lubancat2
 fi
 
@@ -212,8 +212,8 @@ overlays=
 EOF
 
 # Copy kernel and initrd to boot partition
-cp ${mount_point}/writable/boot/initrd.img-5.10.160-rockchip ${mount_point}/system-boot/initrd.img
-cp ${mount_point}/writable/boot/vmlinuz-5.10.160-rockchip ${mount_point}/system-boot/vmlinuz
+cp ${mount_point}/writable/boot/initrd.img-6.4.0 ${mount_point}/system-boot/initrd.img
+cp ${mount_point}/writable/boot/vmlinuz-6.4.0 ${mount_point}/system-boot/vmlinuz
 
 # Copy device trees to boot partition
 mv ${mount_point}/writable/boot/firmware/* ${mount_point}/system-boot

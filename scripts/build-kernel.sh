@@ -23,6 +23,6 @@ cd linux
 
 # Compile kernel into a deb package
 make rk3568_lubancat2_defconfig ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- 
-make bindeb-pkg ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j32 KERNELRELEASE=6.4.0 
+make bindeb-pkg ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j32 KERNELRELEASE=6.4.0 KDEB_PKGVERSION=1
 
 rm -f ../*.buildinfo ../*.changes

@@ -1,4 +1,4 @@
-u-boot-lubancat2 (2023.04) jammy; urgency=medium
+u-boot-lubancat2 (2023.04-1) jammy; urgency=medium
 
   * Initial packaging.
 

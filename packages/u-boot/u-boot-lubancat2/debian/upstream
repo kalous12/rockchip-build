@@ -1,4 +1,4 @@
 GIT=https://github.com/u-boot/u-boot.git
 COMMIT=
 BRANCH=v2023.04
-VERSION=2023.04
+VERSION=2023.04_1
