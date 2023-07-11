@@ -119,9 +119,19 @@ if [[ ${LAUNCHPAD} != "Y" ]]; then
 fi
 
 if [[ ${LAUNCHPAD} != "Y" ]]; then
-    if [ ! -e "u-boot-*.deb" ]; then
-            eval "${DOCKER}" ./scripts/build-uboot.sh
+    for file in build/u-boot-*.deb; do
+        if [ ! -e "$file" ]; then
+            eval "${DOCKER}" ./scripts/build-kernel.sh
         fi
+    done
+fi
+
+if [ -d "build/rootfs" ]; then
+    rm -r build/rootfs
+fi
+
+if [ -d "images" ]; then
+    rm -r images
 fi
 
 echo rootfs finish!!!

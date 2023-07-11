@@ -61,42 +61,17 @@ if [[ -z ${VENDOR} ]]; then
     exit 1
 fi
 
-if [[ "${BOARD}" == orangepi5 ]]; then
-    DEVICE_TREE=rk3588s-orangepi-5.dtb
-    OVERLAY_PREFIX=orangepi-5
-elif [[ "${BOARD}" == orangepi5b ]]; then
-    DEVICE_TREE=rk3588s-orangepi-5b.dtb
-    OVERLAY_PREFIX=orangepi-5
-elif [[ "${BOARD}" == orangepi5plus ]]; then
-    DEVICE_TREE=rk3588-orangepi-5-plus.dtb
-    OVERLAY_PREFIX=orangepi-5-plus
-elif [[ "${BOARD}" == rock5a ]]; then
-    DEVICE_TREE=rk3588s-rock-5a.dtb
-    OVERLAY_PREFIX=rock-5a
-elif [[ "${BOARD}" == rock5b ]]; then
-    DEVICE_TREE=rk3588-rock-5b.dtb
-    OVERLAY_PREFIX=rock-5b
-elif [[ "${BOARD}" == nanopir6c ]]; then
-    DEVICE_TREE=rk3588s-nanopi-r6c.dtb
-    OVERLAY_PREFIX=
-elif [[ "${BOARD}" == nanopir6s ]]; then
-    DEVICE_TREE=rk3588s-nanopi-r6s.dtb
-    OVERLAY_PREFIX=
-elif [[ "${BOARD}" == nanopct6 ]]; then
-    DEVICE_TREE=rk3588-nanopc-t6.dtb
-    OVERLAY_PREFIX=
-elif [[ "${BOARD}" == mixtile-blade3 ]]; then
-    DEVICE_TREE=rk3588-blade3-v101-linux.dts
-    OVERLAY_PREFIX=
-elif [[ "${BOARD}" == indiedroid-nova ]]; then
-    DEVICE_TREE=rk3588s-9tripod-linux.dtb
+if [[ "${BOARD}" == lubancat2 ]]; then
+    DEVICE_TREE=rk3568-lubancat-2.dtb
     OVERLAY_PREFIX=
 fi
 
 # Create an empty disk image
 img="../images/$(basename "${rootfs}" .rootfs.tar).img"
 size="$(( $(wc -c < "${rootfs}" ) / 1024 / 1024 ))"
-truncate -s "$(( size + 2048 + 512 ))M" "${img}"
+truncate -s "$(( size + 128 + 256 ))M" "${img}"
+echo "$size + 128 + 256"
+
 
 # Create loop device for disk image
 loop="$(losetup -f)"
@@ -116,21 +91,21 @@ mkdir -p ${mount_point}
 dd if=/dev/zero of="${disk}" count=4096 bs=512
 parted --script "${disk}" \
 mklabel gpt \
-mkpart primary fat16 16MiB 528MiB \
-mkpart primary ext4 528MiB 100%
+mkpart primary fat16 16MiB 272MiB \
+mkpart primary ext4 272MiB 100%
 
 set +e
 
-# Create partitions
-fdisk "${disk}" << EOF
-t
-1
-BC13C2FF-59E6-4262-A352-B275FD6F7172
-t
-2
-0FC63DAF-8483-4772-8E79-3D69D8477DE4
-w
-EOF
+# # Create partitions
+# fdisk "${disk}" << EOF
+# t
+# 1
+# BC13C2FF-59E6-4262-A352-B275FD6F7172
+# t
+# 2
+# 0FC63DAF-8483-4772-8E79-3D69D8477DE4
+# w
+# EOF
 
 set -eE
 
@@ -174,7 +149,7 @@ mount "${disk}${partition_char}2" ${mount_point}/writable
 tar -xpf "${rootfs}" -C ${mount_point}/writable
 
 # Set boot args for the splash screen
-[ -z "${img##*desktop*}" ] && bootargs="quiet splash plymouth.ignore-serial-consoles" || bootargs=""
+# [ -z "${img##*desktop*}" ] && bootargs="quiet splash plymouth.ignore-serial-consoles" || bootargs=""
 
 # Create fstab entries
 boot_uuid="${boot_uuid:0:4}-${boot_uuid:4:4}"
@@ -183,7 +158,6 @@ cat > ${mount_point}/writable/etc/fstab << EOF
 # <file system>     <mount point>  <type>  <options>   <dump>  <fsck>
 UUID=${boot_uuid^^} /boot/firmware vfat    defaults    0       2
 UUID=${root_uuid,,} /              ext4    defaults    0       1
-/swapfile           none           swap    sw          0       0
 EOF
 
 # Uboot script
@@ -232,10 +206,12 @@ mkimage -A arm64 -O linux -T script -C none -n "Boot Script" -d ${mount_point}/s
 
 # Uboot env
 cat > ${mount_point}/system-boot/ubuntuEnv.txt << EOF
-bootargs=root=UUID=${root_uuid} rootfstype=ext4 rootwait rw console=ttyS2,1500000 console=tty1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=0 ${bootargs}
+bootargs=root=UUID=${root_uuid} rootfstype=ext4 rootwait rw console=ttyS2,1500000 
 fdtfile=${DEVICE_TREE}
 overlay_prefix=${OVERLAY_PREFIX}
 overlays=
+kernel_comp_addr_r=0x19000000
+kernel_comp_size=0x04000000
 EOF
 
 # Copy kernel and initrd to boot partition
