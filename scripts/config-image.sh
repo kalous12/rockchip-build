@@ -72,7 +72,7 @@ overlay_dir=../overlay
     if [[ ${LAUNCHPAD}  == "Y" ]]; then
         chroot ${chroot_dir} /bin/bash -c "apt-get -y install linux-image-6.4.0 linux-headers-6.4.0"
     else
-        cp linux-{headers,image}-6.4.0*.deb ${chroot_dir}/tmp
+        cp linux-{headers,image}-6.4.0_*.deb ${chroot_dir}/tmp
         chroot ${chroot_dir} /bin/bash -c "dpkg -i /tmp/linux-{headers,image}-*.deb && rm -rf /tmp/*"
         chroot ${chroot_dir} /bin/bash -c "apt-mark hold linux-image-6.4.0 linux-headers-6.4.0"
     fi

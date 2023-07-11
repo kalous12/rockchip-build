@@ -69,7 +69,7 @@ fi
 # Create an empty disk image
 img="../images/$(basename "${rootfs}" .rootfs.tar).img"
 size="$(( $(wc -c < "${rootfs}" ) / 1024 / 1024 ))"
-truncate -s "$(( size + 128 + 256 ))M" "${img}"
+truncate -s "$(( size + 2048 + 256 ))M" "${img}"
 echo "$size + 128 + 256"
 
 

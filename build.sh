@@ -121,7 +121,7 @@ fi
 if [[ ${LAUNCHPAD} != "Y" ]]; then
     for file in build/u-boot-*.deb; do
         if [ ! -e "$file" ]; then
-            eval "${DOCKER}" ./scripts/build-kernel.sh
+            eval "${DOCKER}" ./scripts/build-uboot.sh
         fi
     done
 fi
