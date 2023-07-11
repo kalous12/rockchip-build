@@ -10,7 +10,7 @@ exec > >(tee "build/logs/build-$(date +"%Y%m%d%H%M%S").log") 2>&1
 
 usage() {
 cat << HEREDOC
-Usage: $0 --board=[lubancat2]
+Usage: $0 --board=lubancat2
 
 Required arguments:
   -b, --board=BOARD     target board 
@@ -119,12 +119,13 @@ if [[ ${LAUNCHPAD} != "Y" ]]; then
 fi
 
 if [[ ${LAUNCHPAD} != "Y" ]]; then
-    echo uboot finish!!!
-    # eval "${DOCKER}" ./scripts/build-uboot.sh
+    if [ ! -e "u-boot-*.deb" ]; then
+            eval "${DOCKER}" ./scripts/build-uboot.sh
+        fi
 fi
 
 echo rootfs finish!!!
-# eval "${DOCKER}" ./scripts/build-rootfs.sh
+eval "${DOCKER}" ./scripts/build-rootfs.sh
 eval "${DOCKER}" ./scripts/config-image.sh
 
 exit 0

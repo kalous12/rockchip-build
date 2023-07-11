@@ -11,7 +11,7 @@ fi
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p build && cd build
 
-if [[ -f ubuntu-22.04.2-preinstalled-server-arm64.rootfs.tar.xz && -f ubuntu-22.04.2-preinstalled-desktop-arm64.rootfs.tar.xz ]]; then
+if [[ -f ubuntu-22.04.2-preinstalled-server-arm64.rootfs.tar.xz ]]; then
     exit 0
 fi
 

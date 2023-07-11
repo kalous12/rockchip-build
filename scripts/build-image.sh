@@ -61,9 +61,36 @@ if [[ -z ${VENDOR} ]]; then
     exit 1
 fi
 
-if [[ "${BOARD}" == lubancat2 ]]; then
-    DEVICE_TREE=rk3568-lubancat-2.dtb
-    OVERLAY_PREFIX=lubancat2
+if [[ "${BOARD}" == orangepi5 ]]; then
+    DEVICE_TREE=rk3588s-orangepi-5.dtb
+    OVERLAY_PREFIX=orangepi-5
+elif [[ "${BOARD}" == orangepi5b ]]; then
+    DEVICE_TREE=rk3588s-orangepi-5b.dtb
+    OVERLAY_PREFIX=orangepi-5
+elif [[ "${BOARD}" == orangepi5plus ]]; then
+    DEVICE_TREE=rk3588-orangepi-5-plus.dtb
+    OVERLAY_PREFIX=orangepi-5-plus
+elif [[ "${BOARD}" == rock5a ]]; then
+    DEVICE_TREE=rk3588s-rock-5a.dtb
+    OVERLAY_PREFIX=rock-5a
+elif [[ "${BOARD}" == rock5b ]]; then
+    DEVICE_TREE=rk3588-rock-5b.dtb
+    OVERLAY_PREFIX=rock-5b
+elif [[ "${BOARD}" == nanopir6c ]]; then
+    DEVICE_TREE=rk3588s-nanopi-r6c.dtb
+    OVERLAY_PREFIX=
+elif [[ "${BOARD}" == nanopir6s ]]; then
+    DEVICE_TREE=rk3588s-nanopi-r6s.dtb
+    OVERLAY_PREFIX=
+elif [[ "${BOARD}" == nanopct6 ]]; then
+    DEVICE_TREE=rk3588-nanopc-t6.dtb
+    OVERLAY_PREFIX=
+elif [[ "${BOARD}" == mixtile-blade3 ]]; then
+    DEVICE_TREE=rk3588-blade3-v101-linux.dts
+    OVERLAY_PREFIX=
+elif [[ "${BOARD}" == indiedroid-nova ]]; then
+    DEVICE_TREE=rk3588s-9tripod-linux.dtb
+    OVERLAY_PREFIX=
 fi
 
 # Create an empty disk image
@@ -219,8 +246,8 @@ cp ${mount_point}/writable/boot/vmlinuz-6.4.0 ${mount_point}/system-boot/vmlinuz
 mv ${mount_point}/writable/boot/firmware/* ${mount_point}/system-boot
 
 # Write bootloader to disk image
-dd if=${mount_point}/writable/usr/lib/u-boot-*/idbloader.img of="${loop}" seek=64 conv=notrunc
-dd if=${mount_point}/writable/usr/lib/u-boot-*/u-boot.itb of="${loop}" seek=16384 conv=notrunc
+dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"/idbloader.img of="${loop}" seek=64 conv=notrunc
+dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"/u-boot.itb of="${loop}" seek=16384 conv=notrunc
 
 sync --file-system
 sync
