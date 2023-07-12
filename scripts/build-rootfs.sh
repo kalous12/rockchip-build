@@ -204,6 +204,9 @@ rm -rf /var/lib/apt/lists/*
 
 locale-gen en_US.UTF-8
 update-locale LANG="en_US.UTF-8"
+echo "LC_ALL=en_US.UTF-8" >> /etc/environment    
+echo "LANG=en_US.UTF-8" >> /etc/environment
+echo "LANGUAGE=en_US:en" >> /etc/environment
 
 sync
 EOF
