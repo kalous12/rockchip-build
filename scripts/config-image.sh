@@ -94,12 +94,16 @@ overlay_dir=../overlay
     else
         cp u-boot-*.deb ${chroot_dir}/tmp
         chroot ${chroot_dir} /bin/bash -c "dpkg -i /tmp/u-boot-${VENDOR}*.deb && rm -rf /tmp/*"
-        # chroot ${chroot_dir} /bin/bash -c "apt-mark hold u-boot-${BOARD}-rk3588"
+        chroot ${chroot_dir} /bin/bash -c "apt-mark hold u-boot-${BOARD}"
     fi
 
     echo "Update initramfs"
     # Update initramfs
-    chroot ${chroot_dir} /bin/bash -c "update-initramfs -u"
+    if [[ ! -f ${chroot_dir}/boot/initrd.img-6.4.0 ]]; then
+        chroot ${chroot_dir} /bin/bash -c "update-initramfs -u"
+    else 
+        echo skip
+    fi
 
     # Umount temporary API filesystems
     umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true

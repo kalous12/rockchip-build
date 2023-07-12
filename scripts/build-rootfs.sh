@@ -106,9 +106,9 @@ update-locale LANG="en_US.UTF-8"
 apt-get -y update && apt-get -y upgrade && apt-get -y dist-upgrade
 
 # Download and install generic packages
-apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools cloud-init \
+apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools \
 bash-completion man-db manpages nano gnupg initramfs-tools \
-ubuntu-drivers-common ubuntu-server dosfstools mtools parted ntfs-3g zip atop \
+dosfstools mtools parted ntfs-3g zip atop \
 p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
 net-tools wireless-tools openssh-client openssh-server wpasupplicant ifupdown \
 pigz wget curl lm-sensors bluez gdisk usb-modeswitch usb-modeswitch-data make \

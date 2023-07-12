@@ -66,19 +66,24 @@ if [[ "${BOARD}" == lubancat2 ]]; then
     OVERLAY_PREFIX=
 fi
 
+overlay_dir=../overlay
+
 # Create an empty disk image
+echo "Create an empty disk image"
 img="../images/$(basename "${rootfs}" .rootfs.tar).img"
 size="$(( $(wc -c < "${rootfs}" ) / 1024 / 1024 ))"
 truncate -s "$(( size + 2048 + 256 ))M" "${img}"
-echo "$size + 128 + 256"
+echo "$size + 2048 + 256"
 
 
 # Create loop device for disk image
+echo "Create loop device for disk image"
 loop="$(losetup -f)"
 losetup "${loop}" "${img}"
 disk="${loop}"
 
 # Cleanup loopdev on early exit
+echo "Cleanup loopdev on early exit"
 trap 'cleanup_loopdev ${loop}' EXIT
 
 # Ensure disk is not mounted
@@ -88,24 +93,25 @@ umount ${mount_point}/* 2> /dev/null || true
 mkdir -p ${mount_point}
 
 # Setup partition table
+echo "Setup partition table"
 dd if=/dev/zero of="${disk}" count=4096 bs=512
 parted --script "${disk}" \
 mklabel gpt \
-mkpart primary fat16 16MiB 272MiB \
-mkpart primary ext4 272MiB 100%
+mkpart primary fat16 16MiB 528MiB \
+mkpart primary ext4 528MiB 100%
 
 set +e
 
-# # Create partitions
-# fdisk "${disk}" << EOF
-# t
-# 1
-# BC13C2FF-59E6-4262-A352-B275FD6F7172
-# t
-# 2
-# 0FC63DAF-8483-4772-8E79-3D69D8477DE4
-# w
-# EOF
+# Create partitions
+fdisk "${disk}" << EOF
+t
+1
+BC13C2FF-59E6-4262-A352-B275FD6F7172
+t
+2
+0FC63DAF-8483-4772-8E79-3D69D8477DE4
+w
+EOF
 
 set -eE
 
@@ -156,7 +162,7 @@ boot_uuid="${boot_uuid:0:4}-${boot_uuid:4:4}"
 mkdir -p ${mount_point}/writable/boot/firmware
 cat > ${mount_point}/writable/etc/fstab << EOF
 # <file system>     <mount point>  <type>  <options>   <dump>  <fsck>
-UUID=${boot_uuid^^} /boot/firmware vfat    defaults    0       2
+UUID=${boot_uuid^^} /boot vfat    defaults    0       2
 UUID=${root_uuid,,} /              ext4    defaults    0       1
 EOF
 
@@ -172,8 +178,8 @@ setenv overlay_error "false"
 
 echo "Boot script loaded from ${devtype} ${devnum}"
 
-if test -e ${devtype} ${devnum}:${distro_bootpart} /ubuntuEnv.txt; then
-	load ${devtype} ${devnum}:${distro_bootpart} ${load_addr} /ubuntuEnv.txt
+if test -e ${devtype} ${devnum}:${distro_bootpart} /uEnv.txt; then
+	load ${devtype} ${devnum}:${distro_bootpart} ${load_addr} /uEnv.txt
 	env import -t ${load_addr} ${filesize}
 fi
 
@@ -197,15 +203,16 @@ if test "${overlay_error}" = "true"; then
     load ${devtype} ${devnum}:${distro_bootpart} ${fdt_addr_r} /dtbs/${fdtfile}
 fi
 
-load ${devtype} ${devnum}:${distro_bootpart} ${kernel_addr_r} /vmlinuz
-load ${devtype} ${devnum}:${distro_bootpart} ${ramdisk_addr_r} /initrd.img
+load ${devtype} ${devnum}:${distro_bootpart} ${kernel_addr_r} /vmlinuz-${uname_r}
+load ${devtype} ${devnum}:${distro_bootpart} ${ramdisk_addr_r} /initrd.img-${uname_r}
 
 booti ${kernel_addr_r} ${ramdisk_addr_r}:${filesize} ${fdt_addr_r}
 EOF
 mkimage -A arm64 -O linux -T script -C none -n "Boot Script" -d ${mount_point}/system-boot/boot.cmd ${mount_point}/system-boot/boot.scr
 
 # Uboot env
-cat > ${mount_point}/system-boot/ubuntuEnv.txt << EOF
+cat > ${mount_point}/system-boot/uEnv.txt << EOF
+uname_r=6.4.0
 bootargs=root=UUID=${root_uuid} rootfstype=ext4 rootwait rw console=ttyS2,1500000 
 fdtfile=${DEVICE_TREE}
 overlay_prefix=${OVERLAY_PREFIX}
@@ -214,12 +221,22 @@ kernel_comp_addr_r=0x19000000
 kernel_comp_size=0x04000000
 EOF
 
+# DNS
+cp ${overlay_dir}/etc/resolv.conf ${mount_point}/writable/etc/resolv.conf
+
+# Networking interfaces
+cp ${overlay_dir}/etc/NetworkManager/NetworkManager.conf ${mount_point}/writable/etc/NetworkManager/NetworkManager.conf
+cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf ${mount_point}/writable/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf
+cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf ${mount_point}/writable/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf
+cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf ${mount_point}/writable/usr/lib/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf
+
+
 # Copy kernel and initrd to boot partition
-cp ${mount_point}/writable/boot/initrd.img-6.4.0 ${mount_point}/system-boot/initrd.img
-cp ${mount_point}/writable/boot/vmlinuz-6.4.0 ${mount_point}/system-boot/vmlinuz
+cp ${mount_point}/writable/boot/initrd.img-6.4.0 ${mount_point}/system-boot/
+cp ${mount_point}/writable/boot/vmlinuz-6.4.0 ${mount_point}/system-boot/
 
 # Copy device trees to boot partition
-mv ${mount_point}/writable/boot/firmware/* ${mount_point}/system-boot
+mv ${mount_point}/writable/boot/firmware/* ${mount_point}/system-boot/
 
 # Write bootloader to disk image
 dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"/idbloader.img of="${loop}" seek=64 conv=notrunc
