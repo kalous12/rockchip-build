@@ -137,6 +137,9 @@ cat << EOF | chroot ${chroot_dir} /bin/bash
 set -eE 
 trap 'echo Error: in $0 on line $LINENO' ERR
 
+locale-gen en_US.UTF-8
+update-locale LANG="en_US.UTF-8"
+
 HOST=lubancat
 
 # Create User
@@ -198,6 +201,9 @@ sed -i -e '
 
 apt-get clean
 rm -rf /var/lib/apt/lists/*
+
+locale-gen en_US.UTF-8
+update-locale LANG="en_US.UTF-8"
 
 sync
 EOF
