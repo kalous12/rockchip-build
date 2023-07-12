@@ -26,7 +26,8 @@ export DEBIAN_FRONTEND=noninteractive
 # Debootstrap options
 arch=arm64
 release=jammy
-mirror=http://ports.ubuntu.com/ubuntu-ports
+version=22.04.2
+mirror=http://mirrors.ustc.edu.cn/ubuntu-ports/
 chroot_dir=rootfs
 overlay_dir=../overlay
 
@@ -37,52 +38,28 @@ rm -rf ${chroot_dir}
 mkdir -p ${chroot_dir}
 
 # Install the base system into a directory 
-debootstrap --arch ${arch} ${release} ${chroot_dir} ${mirror}
+# debootstrap --arch ${arch} ${release} ${chroot_dir} ${mirror}
+
+if [[ ! -f ubuntu-base-${version}-base-${arch}.tar.gz ]];then
+	wget http://cdimage.ubuntu.com/ubuntu-base/releases/${version}/release/ubuntu-base-${version}-base-${arch}.tar.gz
+fi
+
+tar -xzf ubuntu-base-${version}-base-${arch}.tar.gz -C ${chroot_dir}
+cp -b /etc/resolv.conf ${chroot_dir}/etc/resolv.conf
 
 # Use a more complete sources.list file 
 cat > ${chroot_dir}/etc/apt/sources.list << EOF
-# See http://help.ubuntu.com/community/UpgradeNotes for how to upgrade to
-# newer versions of the distribution.
-deb ${mirror} ${release} main restricted
-# deb-src ${mirror} ${release} main restricted
+deb ${mirror} ${release} main restricted universe multiverse
+# deb-src ${mirror} ${release} main restricted universe multiverse
 
-## Major bug fix updates produced after the final release of the
-## distribution.
-deb ${mirror} ${release}-updates main restricted
-# deb-src ${mirror} ${release}-updates main restricted
+deb ${mirror} ${release}-security main restricted universe multiverse
+# deb-src ${mirror} ${release}-security main restricted universe multiverse
 
-## N.B. software from this repository is ENTIRELY UNSUPPORTED by the Ubuntu
-## team. Also, please note that software in universe WILL NOT receive any
-## review or updates from the Ubuntu security team.
-deb ${mirror} ${release} universe
-# deb-src ${mirror} ${release} universe
-deb ${mirror} ${release}-updates universe
-# deb-src ${mirror} ${release}-updates universe
+deb ${mirror} ${release}-updates main restricted universe multiverse
+# deb-src ${mirror} ${release}-updates main restricted universe multiverse
 
-## N.B. software from this repository is ENTIRELY UNSUPPORTED by the Ubuntu
-## team, and may not be under a free licence. Please satisfy yourself as to
-## your rights to use the software. Also, please note that software in
-## multiverse WILL NOT receive any review or updates from the Ubuntu
-## security team.
-deb ${mirror} ${release} multiverse
-# deb-src ${mirror} ${release} multiverse
-deb ${mirror} ${release}-updates multiverse
-# deb-src ${mirror} ${release}-updates multiverse
-
-## N.B. software from this repository may not have been tested as
-## extensively as that contained in the main release, although it includes
-## newer versions of some applications which may provide useful features.
-## Also, please note that software in backports WILL NOT receive any review
-## or updates from the Ubuntu security team.
 deb ${mirror} ${release}-backports main restricted universe multiverse
 # deb-src ${mirror} ${release}-backports main restricted universe multiverse
-
-deb ${mirror} ${release}-security main restricted
-# deb-src ${mirror} ${release}-security main restricted
-deb ${mirror} ${release}-security universe
-# deb-src ${mirror} ${release}-security universe
-deb ${mirror} ${release}-security multiverse
-# deb-src ${mirror} ${release}-security multiverse
 EOF
 
 # Mount the temporary API filesystems
@@ -98,21 +75,17 @@ cat << EOF | chroot ${chroot_dir} /bin/bash
 set -eE 
 trap 'echo Error: in $0 on line $LINENO' ERR
 
-# Update localisation files
-locale-gen en_US.UTF-8
-update-locale LANG="en_US.UTF-8"
-
 # Download and update installed packages
-apt-get -y update && apt-get -y upgrade && apt-get -y dist-upgrade
+apt-get -y update && apt-get -y upgrade
 
 # Download and install generic packages
 apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools \
-bash-completion man-db manpages nano gnupg initramfs-tools \
-dosfstools mtools parted ntfs-3g zip atop \
+bash-completion man-db manpages nano gnupg initramfs-tools locales \
+dosfstools mtools parted ntfs-3g zip atop network-manager netplan.io \
 p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
-net-tools wireless-tools openssh-client openssh-server wpasupplicant ifupdown \
-pigz wget curl lm-sensors bluez gdisk usb-modeswitch usb-modeswitch-data make \
-gcc libc6-dev bison libssl-dev flex flash-kernel fake-hwclock rfkill wireless-regdb
+net-tools wireless-tools openssh-client openssh-server ifupdown \
+pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
+gcc libc6-dev bison libssl-dev flex flash-kernel fake-hwclock rfkill inetutils-ping
 
 # Remove cryptsetup and needrestart
 apt-get -y remove cryptsetup needrestart
@@ -161,22 +134,6 @@ sed -i '/pam_securetty.so/s/^/# /g' /etc/pam.d/login
 # hostname
 echo lubancat > /etc/hostname
 
-# set localtime
-ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-
-# workaround 90s delay
-services=(NetworkManager systemd-networkd)
-for service in ${services[@]}; do
-  systemctl mask ${service}-wait-online.service
-done
-
-# disbale the wire/nl80211
-systemctl mask wpa_supplicant-wired@
-systemctl mask wpa_supplicant-nl80211@
-systemctl mask wpa_supplicant@
-
-# Make systemd less spammy
-
 sed -i 's/#LogLevel=info/LogLevel=warning/' \
   /etc/systemd/system.conf
 
@@ -201,12 +158,6 @@ sed -i -e '
 
 apt-get clean
 rm -rf /var/lib/apt/lists/*
-
-locale-gen en_US.UTF-8
-update-locale LANG="en_US.UTF-8"
-echo "LC_ALL=en_US.UTF-8" >> /etc/environment    
-echo "LANG=en_US.UTF-8" >> /etc/environment
-echo "LANGUAGE=en_US:en" >> /etc/environment
 
 sync
 EOF
