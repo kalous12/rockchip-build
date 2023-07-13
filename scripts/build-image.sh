@@ -50,6 +50,8 @@ fi
 
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p images build && cd build
+BOARD=lubancat2
+VENDOR=lubancat2
 
 if [[ -z ${BOARD} ]]; then
     echo "Error: BOARD is not set"
@@ -68,23 +70,16 @@ fi
 
 overlay_dir=../overlay
 
-# Create an empty disk image
-echo "Create an empty disk image"
-img="../images/$(basename "${rootfs}" .rootfs.tar).img"
-size="$(( $(wc -c < "${rootfs}" ) / 1024 / 1024 ))"
-truncate -s "$(( size + 2048 + 256 ))M" "${img}"
-echo "$size + 2048 + 256"
+loader_dir=loader
 
+boot_dir=boot
+boot_img=boot.img
+boot_size=256
+boot_uuid=$(uuidgen | head -c8)
 
-# Create loop device for disk image
-echo "Create loop device for disk image"
-loop="$(losetup -f)"
-losetup "${loop}" "${img}"
-disk="${loop}"
-
-# Cleanup loopdev on early exit
-echo "Cleanup loopdev on early exit"
-trap 'cleanup_loopdev ${loop}' EXIT
+rootfs_dir=rootfs
+rootfs_img=rootfs.img
+root_uuid=$(uuidgen)
 
 # Ensure disk is not mounted
 mount_point=/tmp/mnt
@@ -92,82 +87,26 @@ umount "${disk}"* 2> /dev/null || true
 umount ${mount_point}/* 2> /dev/null || true
 mkdir -p ${mount_point}
 
-# Setup partition table
-echo "Setup partition table"
-dd if=/dev/zero of="${disk}" count=4096 bs=512
-parted --script "${disk}" \
-mklabel gpt \
-mkpart primary fat16 16MiB 528MiB \
-mkpart primary ext4 528MiB 100%
-
-set +e
-
-# Create partitions
-fdisk "${disk}" << EOF
-t
-1
-BC13C2FF-59E6-4262-A352-B275FD6F7172
-t
-2
-0FC63DAF-8483-4772-8E79-3D69D8477DE4
-w
-EOF
-
-set -eE
-
-partprobe "${disk}"
-
-partition_char="$(if [[ ${disk: -1} == [0-9] ]]; then echo p; fi)"
-
-sleep 1
-
-wait_loopdev "${disk}${partition_char}2" 60 || {
-    echo "Failure to create ${disk}${partition_char}1 in time"
-    exit 1
-}
-
-sleep 1
-
-wait_loopdev "${disk}${partition_char}1" 60 || {
-    echo "Failure to create ${disk}${partition_char}1 in time"
-    exit 1
-}
-
-sleep 1
-
-# Generate random uuid for bootfs
-boot_uuid=$(uuidgen | head -c8)
-
-# Generate random uuid for rootfs
-root_uuid=$(uuidgen)
-
-# Create filesystems on partitions
-mkfs.vfat -i "${boot_uuid}" -F16 -n system-boot "${disk}${partition_char}1"
-dd if=/dev/zero of="${disk}${partition_char}2" bs=1KB count=10 > /dev/null
-mkfs.ext4 -U "${root_uuid}" -L writable "${disk}${partition_char}2"
-
 # Mount partitions
-mkdir -p ${mount_point}/{system-boot,writable} 
-mount "${disk}${partition_char}1" ${mount_point}/system-boot
-mount "${disk}${partition_char}2" ${mount_point}/writable
+mkdir -p ${rootfs_dir} ${boot_dir} ${loader_dir}
 
-# Copy the rootfs to root partition
-tar -xpf "${rootfs}" -C ${mount_point}/writable
+# Copy the rootfs to rootfs partition
+tar -xpf "${rootfs}" -C ${rootfs_dir}
 
 # Set boot args for the splash screen
 # [ -z "${img##*desktop*}" ] && bootargs="quiet splash plymouth.ignore-serial-consoles" || bootargs=""
 
-# Create fstab entries
-boot_uuid="${boot_uuid:0:4}-${boot_uuid:4:4}"
-mkdir -p ${mount_point}/writable/boot/firmware
-cat > ${mount_point}/writable/etc/fstab << EOF
-# <file system>     <mount point>  <type>  <options>   <dump>  <fsck>
-UUID=${boot_uuid^^} /boot vfat    defaults    0       2
-UUID=${root_uuid,,} /              ext4    defaults    0       1
-EOF
+# DNS
+cp ${overlay_dir}/etc/resolv.conf ${rootfs_dir}/etc/resolv.conf
+
+# Networking interfaces
+cp ${overlay_dir}/etc/NetworkManager/NetworkManager.conf ${rootfs_dir}/etc/NetworkManager/NetworkManager.conf
+cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf ${rootfs_dir}/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf
+cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf ${rootfs_dir}/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf
+cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf ${rootfs_dir}/usr/lib/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf
 
 # Uboot script
-cat > ${mount_point}/system-boot/boot.cmd << 'EOF'
+cat > ${boot_dir}/boot.cmd << 'EOF'
 # This is a boot script for U-Boot
 #
 # Recompile with:
@@ -208,10 +147,10 @@ load ${devtype} ${devnum}:${distro_bootpart} ${ramdisk_addr_r} /initrd.img-${una
 
 booti ${kernel_addr_r} ${ramdisk_addr_r}:${filesize} ${fdt_addr_r}
 EOF
-mkimage -A arm64 -O linux -T script -C none -n "Boot Script" -d ${mount_point}/system-boot/boot.cmd ${mount_point}/system-boot/boot.scr
+mkimage -A arm64 -O linux -T script -C none -n "Boot Script" -d ${boot_dir}/boot.cmd ${boot_dir}/boot.scr
 
 # Uboot env
-cat > ${mount_point}/system-boot/uEnv.txt << EOF
+cat > ${boot_dir}/uEnv.txt << EOF
 uname_r=6.4.0
 bootargs=root=UUID=${root_uuid} rootfstype=ext4 rootwait rw console=ttyS2,1500000 
 fdtfile=${DEVICE_TREE}
@@ -221,33 +160,119 @@ kernel_comp_addr_r=0x19000000
 kernel_comp_size=0x04000000
 EOF
 
-# DNS
-cp ${overlay_dir}/etc/resolv.conf ${mount_point}/writable/etc/resolv.conf
-
-# Networking interfaces
-cp ${overlay_dir}/etc/NetworkManager/NetworkManager.conf ${mount_point}/writable/etc/NetworkManager/NetworkManager.conf
-cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf ${mount_point}/writable/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf
-cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf ${mount_point}/writable/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf
-cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf ${mount_point}/writable/usr/lib/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf
-
-
 # Copy kernel and initrd to boot partition
-cp ${mount_point}/writable/boot/initrd.img-6.4.0 ${mount_point}/system-boot/
-cp ${mount_point}/writable/boot/vmlinuz-6.4.0 ${mount_point}/system-boot/
+cp ${rootfs_dir}/boot/initrd.img-6.4.0 ${boot_dir}
+cp ${rootfs_dir}/boot/vmlinuz-6.4.0 ${boot_dir}
 
 # Copy device trees to boot partition
-mv ${mount_point}/writable/boot/firmware/* ${mount_point}/system-boot/
+mv ${rootfs_dir}/boot/firmware/* ${boot_dir}
+
+# Create fstab entries
+boot_uuid_fstab="${boot_uuid:0:4}-${boot_uuid:4:4}"
+cat > ${rootfs_dir}/etc/fstab << EOF
+# <file system>     <mount point>  <type>  <options>   <dump>  <fsck>
+UUID=${boot_uuid_fstab^^} /boot vfat    defaults    0       2
+UUID=${root_uuid,,} /              ext4    defaults    0       1
+EOF
+
+# Copy u-boot fireware to loader_dir
+cp -rfp ${rootfs_dir}/usr/lib/u-boot-"${VENDOR}"/* "${loader_dir}"
+
+#create boot and rootfs dir to mount img 
+mkdir -p ${mount_point}/{system-boot,writable} 
+
+
+echo "creat boot.img"
+# creat boot.img
+truncate -s ${boot_size}M ${boot_img}
+mkfs.vfat -i "${boot_uuid}" -F16 -n BOOT "${boot_img}"
+mount ${boot_img} ${mount_point}/system-boot
+cp -rfp ${boot_dir}/* ${mount_point}/system-boot
+umount ${boot_img}
+
+echo "creat rootfs.img"
+# creat rootfs.img
+truncate -s 8192M ${rootfs_img}
+mkfs.ext4 -U "${root_uuid}" -L ROOTFS "${rootfs_img}"
+mount ${rootfs_img} ${mount_point}/writable
+cp -rfp ${rootfs_dir}/* ${mount_point}/writable
+umount ${rootfs_img}
+
+echo "resize rootfs.img"
+# resize rootfs.img
+e2fsck -p -f "${rootfs_img}"
+resize2fs -M "${rootfs_img}"
+
+# Create an empty disk image
+echo "Create an empty disk image"
+img="../images/$(basename "${rootfs}" .rootfs.tar).img"
+size=$(( $(wc -c < boot.img) + $(wc -c < rootfs.img) + 32768 * 512 ))
+size_m=$(( size / 1024 / 1024 + 10 ))
+truncate -s "${size_m}M" "${img}"
+echo "image large is $size_m"
+
+# Create loop device for disk image
+echo "Create loop device for disk image"
+loop="$(losetup -f)"
+losetup "${loop}" "${img}"
+disk="${loop}"
+
+# Cleanup loopdev on early exit
+echo "Cleanup loopdev on early exit"
+trap 'cleanup_loopdev ${loop}' EXIT
+
+# Setup partition table
+echo "Setup partition table"
+dd if=/dev/zero of="${disk}" count=4096 bs=512
+parted --script "${disk}" \
+mklabel gpt \
+mkpart primary fat16 16MiB 272MiB \
+mkpart primary ext4 272MiB 100%
+
+set +e
+
+# Create partitions
+fdisk "${disk}" << EOF
+t
+1
+BC13C2FF-59E6-4262-A352-B275FD6F7172
+t
+2
+0FC63DAF-8483-4772-8E79-3D69D8477DE4
+w
+EOF
+
+set -eE
+
+partprobe "${disk}"
+
+partition_char="$(if [[ ${disk: -1} == [0-9] ]]; then echo p; fi)"
+
+sleep 1
+
+wait_loopdev "${disk}${partition_char}2" 60 || {
+    echo "Failure to create ${disk}${partition_char}1 in time"
+    exit 1
+}
+
+sleep 1
+
+wait_loopdev "${disk}${partition_char}1" 60 || {
+    echo "Failure to create ${disk}${partition_char}1 in time"
+    exit 1
+}
+
+sleep 1
 
 # Write bootloader to disk image
-dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"/idbloader.img of="${loop}" seek=64 conv=notrunc
-dd if=${mount_point}/writable/usr/lib/u-boot-"${VENDOR}"/u-boot.itb of="${loop}" seek=16384 conv=notrunc
+dd if=${loader_dir}/idbloader.img of="${loop}" seek=64 conv=notrunc
+dd if=${loader_dir}/u-boot.itb of="${loop}" seek=16384 conv=notrunc
+
+dd if=${boot_img} of=${disk}${partition_char}1 bs=1M
+dd if=${rootfs_img} of=${disk}${partition_char}2 bs=1M
 
 sync --file-system
 sync
-
-# Umount partitions
-umount "${disk}${partition_char}1"
-umount "${disk}${partition_char}2"
 
 # Remove loop device
 losetup -d "${loop}"
@@ -257,5 +282,7 @@ trap '' EXIT
 
 echo -e "\nCompressing $(basename "${img}.xz")\n"
 xz -3 --force --keep --quiet --threads=0 "${img}"
-rm -f "${img}"
+mv ${boot_img} ../images
+mv ${rootfs_img} ../images
+rm -r ${rootfs_dir} ${boot_dir} ${loader_dir}
 cd ../images && sha256sum "$(basename "${img}.xz")" > "$(basename "${img}.xz.sha256")"

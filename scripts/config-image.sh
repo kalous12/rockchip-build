@@ -112,5 +112,7 @@ overlay_dir=../overlay
     echo "Tar the entire rootfs"
     # Tar the entire rootfs
     cd ${chroot_dir} && tar -cpf ../ubuntu-22.04.2-preinstalled-${type}-arm64-"${BOARD}".rootfs.tar . && cd ..
+    rm -r ${chroot_dir}
     ../scripts/build-image.sh ubuntu-22.04.2-preinstalled-${type}-arm64-"${BOARD}".rootfs.tar
     rm -f ubuntu-22.04.2-preinstalled-${type}-arm64-"${BOARD}".rootfs.tar
+
