@@ -12,6 +12,12 @@ Now it can build for rk3568.
 you can build for embedfire-lubancat2
 
 now you just can build ubuntu22.04 server and other is prepare to finish 
+
+# Plan 
+v1.0.1  ---- use conf to control build that we can easy to build your img
+v1.0.2  ---- try to add ubuntu22.04 desktop img 
+v1.0.3  ---- add different package that make 3568 have good function use.such as npu ffmpeg 
+
 # build image
 now you can do this to build image
 
