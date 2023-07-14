@@ -96,15 +96,6 @@ tar -xpf "${rootfs}" -C ${rootfs_dir}
 # Set boot args for the splash screen
 # [ -z "${img##*desktop*}" ] && bootargs="quiet splash plymouth.ignore-serial-consoles" || bootargs=""
 
-# DNS
-cp ${overlay_dir}/etc/resolv.conf ${rootfs_dir}/etc/resolv.conf
-
-# Networking interfaces
-cp ${overlay_dir}/etc/NetworkManager/NetworkManager.conf ${rootfs_dir}/etc/NetworkManager/NetworkManager.conf
-cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf ${rootfs_dir}/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf
-cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf ${rootfs_dir}/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf
-cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf ${rootfs_dir}/usr/lib/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf
-
 # Uboot script
 cat > ${boot_dir}/boot.cmd << 'EOF'
 # This is a boot script for U-Boot

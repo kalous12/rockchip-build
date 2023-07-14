@@ -1,10 +1,28 @@
 # rockchip-build
 this is build for rockchip soc.
 
-Now it can build for rk3568
+Now it can build for rk3568.
 
+you can build for embedfire-lubancat2
+
+now you just can build ubuntu22.04 server and other is prepare to finish 
 # build image
-I am not ready for this. there has some issues for me.
+now you can do this to build image
+
+```bash
+cd rockchip-build
+./build.sh --board=lubancat2
+```
+
+or to config your board
+
+```bash
+./build.sh --help
+```
+
+the img dir in ``rockchip-build/images``
+
+----
  
 ## build u-boot
 Now it can use mainline uboot to start your board.
@@ -33,14 +51,25 @@ sync
 **u-boot-evb-rk3568_2023.04_arm64.deb** is a deb that you can ota your uboot.
 
 ## build kernel
-I am not ready for this. 
-Please wait for that.
+Now it can use mainline uboot to start your board.
+
+you can get two deb ``linux-headers-*_arm64.deb`` and ``linux-image-*_arm64.deb``
+
+it can update your kernel when you are use it in your board 
+
+transfer this debs to your board and do this 
+
+```bash
+# install kernel
+dpkg -i linux-{headers,image}*.deb
+
+# reboot to make it work
+reboot 
+```
+
 ## build rootfs
-I am not ready for this. 
-Please wait for that.
 
-
-
+**build/log** :you can find your build log that can make you easy to debug
 
 
 

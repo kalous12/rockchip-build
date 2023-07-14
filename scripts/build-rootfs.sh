@@ -79,7 +79,7 @@ trap 'echo Error: in $0 on line $LINENO' ERR
 apt-get -y update && apt-get -y upgrade
 
 # Download and install generic packages
-apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools \
+apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools inetutils-ping \
 bash-completion man-db manpages nano gnupg initramfs-tools locales \
 dosfstools mtools parted ntfs-3g zip atop network-manager netplan.io \
 p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
@@ -161,6 +161,33 @@ rm -rf /var/lib/apt/lists/*
 
 sync
 EOF
+
+# DNS
+cp ${overlay_dir}/etc/resolv.conf ${chroot_dir}/etc/resolv.conf
+
+# Networking interfaces
+cp ${overlay_dir}/etc/NetworkManager/NetworkManager.conf ${chroot_dir}/etc/NetworkManager/NetworkManager.conf
+cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf ${chroot_dir}/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf
+cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf ${chroot_dir}/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf
+cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf ${chroot_dir}/usr/lib/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf
+
+# Expand root filesystem on first boot
+mkdir -p ${chroot_dir}/usr/lib/scripts
+cp ${overlay_dir}/usr/lib/scripts/resize-filesystem.sh ${chroot_dir}/usr/lib/scripts/resize-filesystem.sh
+cp ${overlay_dir}/usr/lib/systemd/system/resize-filesystem.service ${chroot_dir}/usr/lib/systemd/system/resize-filesystem.service
+chroot ${chroot_dir} /bin/bash -c "systemctl enable resize-filesystem"
+
+# Set cpu governor to performance
+cp ${overlay_dir}/usr/lib/systemd/system/cpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/cpu-governor-performance.service
+chroot ${chroot_dir} /bin/bash -c "systemctl enable cpu-governor-performance"
+
+# Set gpu governor to performance
+cp ${overlay_dir}/usr/lib/systemd/system/gpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/gpu-governor-performance.service
+chroot ${chroot_dir} /bin/bash -c "systemctl enable gpu-governor-performance"
+
+# Set term for serial tty
+mkdir -p ${chroot_dir}/lib/systemd/system/serial-getty@.service.d
+cp ${overlay_dir}/usr/lib/systemd/system/serial-getty@.service.d/10-term.conf ${chroot_dir}/usr/lib/systemd/system/serial-getty@.service.d/10-term.conf
 
 # Umount temporary API filesystems
 umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true

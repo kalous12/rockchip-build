@@ -73,6 +73,7 @@ for i in "$@"; do
             ;;
         -*)
             echo "Error: unknown argument \"$i\""
+            usage
             exit 1
             ;;
         *)
@@ -134,7 +135,6 @@ if [ -d "images" ]; then
     rm -r images
 fi
 
-echo rootfs finish!!!
 eval "${DOCKER}" ./scripts/build-rootfs.sh
 eval "${DOCKER}" ./scripts/config-image.sh
 
