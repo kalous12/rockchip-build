@@ -1,3 +1,9 @@
+Good Good Study Day Day Up!
+
+Life is a fuking movie.
+
+nerver give up your life !!! 
+
 # rockchip-build
 this is build for rockchip soc.
 
