@@ -1,0 +1,33 @@
+name: build-compose
+run-name: build on github
+on:
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      board:
+        description: target board
+        required: true
+        type: choice
+        options:
+        - "lubancat2"
+
+env:
+  TZ: Asia/Shanghai
+  
+jobs:
+
+  Build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1440
+    steps:
+      
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build
+      run: |
+        # sudo ./build.sh -b ${{ inputs.board }}
+        echo "${{ inputs.board }}"
+        apt update
+        apt upgrade
+        
