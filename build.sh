@@ -112,7 +112,7 @@ if [[ ${UBOOT_ONLY} == "Y" ]]; then
 fi
 
 if [[ ${LAUNCHPAD} != "Y" ]]; then
-    for file in build/linux-{headers,image}-*.deb; do
+    for file in build/linux-image-*.deb; do
         if [ ! -e "$file" ]; then
             eval "${DOCKER}" ./scripts/build-kernel.sh
         fi
