@@ -1,0 +1,86 @@
+name: build-compose
+
+on:
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      board:
+        description: target board
+        required: true
+        type: choice
+        options:
+        - "orangepi5"
+        - "orangepi5b"
+        - "orangepi5plus"
+        - "rock5b"
+        - "rock5a"
+        - "nanopir6c"
+        - "nanopir6s"
+        - "indiedroid-nova"
+        - "lubancat-4"
+      clean:
+        description: clean the build directory
+        required: true
+        default: false
+        type: boolean
+      docker:
+        description: use docker to build
+        required: true
+        default: false
+        type: boolean
+      kernel-only:
+        description: only compile the kernel
+        required: true
+        default: false
+        type: boolean
+      uboot-only:
+        description: only compile uboot
+        required: true
+        default: false
+        type: boolean
+      launchpad:
+        description: use kernel and uboot from launchpad repo
+        required: true
+        default: false
+        type: boolean
+      verbose:
+        description: increase the verbosity of the bash script
+        required: true
+        default: false
+        type: boolean
+
+env:
+  TZ: Asia/Shanghai
+  
+jobs:
+
+  Build:
+    runs-on: self-hosted
+    timeout-minutes: 1440
+    steps:
+      
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build
+      run: |
+        args=""
+        if [ "${{ inputs.clean }}" == true ]; then
+          args="-c"
+        fi
+        if [ "${{ inputs.docker }}" == true ]; then
+          args="$args -d"
+        fi
+        if [ "${{ inputs.kernel-only }}" == true ]; then
+          args="$args -k"
+        fi
+        if [ "${{ inputs.uboot-only }}" == true ]; then
+          args="$args -u"
+        fi
+        if [ "${{ inputs.launchpad }}" == true ]; then
+          args="$args -l"
+        fi
+        if [ "${{ inputs.verbose }}" == true ]; then
+          args="$args -v"
+        fi
+        sudo ./build.sh -b ${{ inputs.board }} $args
