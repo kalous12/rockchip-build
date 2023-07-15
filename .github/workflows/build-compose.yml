@@ -28,6 +28,5 @@ jobs:
       run: |
         # sudo ./build.sh -b ${{ inputs.board }}
         echo "${{ inputs.board }}"
-        apt update
-        apt upgrade
-        
+        sudo apt update
+        sudo apt upgrade
