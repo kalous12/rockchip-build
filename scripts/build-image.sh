@@ -273,7 +273,7 @@ trap '' EXIT
 
 echo -e "\nCompressing $(basename "${img}.xz")\n"
 xz -3 --force --keep --quiet --threads=0 "${img}"
-mv ${boot_img} ../images
-mv ${rootfs_img} ../images
+rm ${boot_img}
+rm ${rootfs_img} 
 rm -r ${rootfs_dir} ${boot_dir} ${loader_dir}
 cd ../images && sha256sum "$(basename "${img}.xz")" > "$(basename "${img}.xz.sha256")"
