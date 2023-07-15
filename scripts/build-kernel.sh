@@ -25,4 +25,6 @@ cd linux
 make defconfig ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- 
 make bindeb-pkg ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j32 KERNELRELEASE=6.4.0 KDEB_PKGVERSION=1
 
+rm "linux-image*dbg*.deb"
+rm "linux-libc*"
 rm -f ../*.buildinfo ../*.changes
