@@ -11,7 +11,7 @@ fi
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p build && cd build
 
-if [[ -f ubuntu-22.04.2-preinstalled-server-arm64.rootfs.tar.xz ]]; then
+if [[ -f ubuntu-22.04.2-server-arm64.rootfs.tar.xz ]]; then
     exit 0
 fi
 
@@ -80,10 +80,10 @@ apt-get -y update && apt-get -y upgrade
 
 # Download and install generic packages
 apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools inetutils-ping \
-bash-completion man-db manpages nano gnupg initramfs-tools locales \
+bash-completion man-db manpages nano gnupg initramfs-tools locales vim \
 dosfstools mtools parted ntfs-3g zip atop network-manager netplan.io \
 p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
-net-tools wireless-tools openssh-client openssh-server ifupdown \
+net-tools wireless-tools openssh-client openssh-server ifupdown sudo bzip2 \
 pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
 gcc libc6-dev bison libssl-dev flex flash-kernel fake-hwclock rfkill inetutils-ping
 
@@ -178,12 +178,12 @@ cp ${overlay_dir}/usr/lib/systemd/system/resize-filesystem.service ${chroot_dir}
 chroot ${chroot_dir} /bin/bash -c "systemctl enable resize-filesystem"
 
 # Set cpu governor to performance
-cp ${overlay_dir}/usr/lib/systemd/system/cpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/cpu-governor-performance.service
-chroot ${chroot_dir} /bin/bash -c "systemctl enable cpu-governor-performance"
+# cp ${overlay_dir}/usr/lib/systemd/system/cpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/cpu-governor-performance.service
+# chroot ${chroot_dir} /bin/bash -c "systemctl enable cpu-governor-performance"
 
 # Set gpu governor to performance
-cp ${overlay_dir}/usr/lib/systemd/system/gpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/gpu-governor-performance.service
-chroot ${chroot_dir} /bin/bash -c "systemctl enable gpu-governor-performance"
+# cp ${overlay_dir}/usr/lib/systemd/system/gpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/gpu-governor-performance.service
+# chroot ${chroot_dir} /bin/bash -c "systemctl enable gpu-governor-performance"
 
 # Set term for serial tty
 mkdir -p ${chroot_dir}/lib/systemd/system/serial-getty@.service.d
@@ -194,4 +194,4 @@ umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true
 umount -lf ${chroot_dir}/* 2> /dev/null || true
 
 # Tar the entire rootfs
-cd ${chroot_dir} && XZ_OPT="-3 -T0" tar -cpJf ../ubuntu-22.04.2-preinstalled-server-arm64.rootfs.tar.xz . && cd ..
+cd ${chroot_dir} && XZ_OPT="-3 -T0" tar -cpJf ../ubuntu-22.04.2-server-arm64.rootfs.tar.xz . && cd ..

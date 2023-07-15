@@ -57,7 +57,7 @@ overlay_dir=../overlay
     rm -rf ${chroot_dir}
     mkdir -p ${chroot_dir}
 
-    tar -xpJf ubuntu-22.04.2-preinstalled-${type}-arm64.rootfs.tar.xz -C ${chroot_dir}
+    tar -xpJf ubuntu-22.04.2-${type}-arm64.rootfs.tar.xz -C ${chroot_dir}
 
     echo "Mount the temporary API filesystems"
     # Mount the temporary API filesystems
@@ -111,8 +111,8 @@ overlay_dir=../overlay
 
     echo "Tar the entire rootfs"
     # Tar the entire rootfs
-    cd ${chroot_dir} && tar -cpf ../ubuntu-22.04.2-preinstalled-${type}-arm64-"${BOARD}".rootfs.tar . && cd ..
+    cd ${chroot_dir} && tar -cpf ../ubuntu-22.04.2-${type}-arm64-"${BOARD}".rootfs.tar . && cd ..
     rm -r ${chroot_dir}
-    ../scripts/build-image.sh ubuntu-22.04.2-preinstalled-${type}-arm64-"${BOARD}".rootfs.tar
-    rm -f ubuntu-22.04.2-preinstalled-${type}-arm64-"${BOARD}".rootfs.tar
+    ../scripts/build-image.sh ubuntu-22.04.2-${type}-arm64-"${BOARD}".rootfs.tar
+    rm -f ubuntu-22.04.2-${type}-arm64-"${BOARD}".rootfs.tar
 
