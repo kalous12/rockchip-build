@@ -81,7 +81,7 @@ apt-get -y update && apt-get -y upgrade
 # Download and install generic packages
 apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools inetutils-ping \
 bash-completion man-db manpages nano gnupg initramfs-tools locales vim \
-dosfstools mtools parted ntfs-3g zip atop network-manager netplan.io \
+dosfstools mtools parted ntfs-3g zip atop network-manager netplan.io file \
 p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
 net-tools wireless-tools openssh-client openssh-server ifupdown sudo bzip2 \
 pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
