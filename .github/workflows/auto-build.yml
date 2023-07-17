@@ -51,7 +51,8 @@ jobs:
       run: |
         cd rockchip-build
         sudo ./build.sh -b $BOARD
-        echo "FIRMWARE=rockchip-build/images" >> $GITHUB_ENV
+        rm images/*.img
+        echo "FIRMWARE=images" >> $GITHUB_ENV
       
     - name: Generate release
       id: tag
@@ -69,7 +70,7 @@ jobs:
           name: ${{ steps.tag.outputs.release_date }} 镜像下载
           tag_name: ${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
-          files: ${{ env.FIRMWARE }}/*.img.xz ${{ env.FIRMWARE }}/*.img.xz.sha256
+          files: ${{ env.FIRMWARE }}/*
 
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2
