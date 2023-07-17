@@ -277,3 +277,4 @@ rm ${boot_img}
 rm ${rootfs_img} 
 rm -r ${rootfs_dir} ${boot_dir} ${loader_dir}
 cd ../images && sha256sum "$(basename "${img}.xz")" > "$(basename "${img}.xz.sha256")"
+rm ${img}

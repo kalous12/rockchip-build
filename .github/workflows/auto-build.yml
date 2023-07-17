@@ -51,7 +51,6 @@ jobs:
       run: |
         cd rockchip-build
         sudo ./build.sh -b $BOARD
-        rm images/*.img
         echo "FIRMWARE=images" >> $GITHUB_ENV
       
     - name: Generate release
