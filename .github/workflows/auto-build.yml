@@ -51,7 +51,7 @@ jobs:
       run: |
         cd rockchip-build
         sudo ./build.sh -b $BOARD
-        echo "FIRMWARE=images" >> $GITHUB_ENV
+        echo "FIRMWARE=~/rockchip-build/images" >> $GITHUB_ENV
       
     - name: Generate release
       id: tag
