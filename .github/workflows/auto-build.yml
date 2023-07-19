@@ -40,10 +40,20 @@ jobs:
         qemu-user-static qemu-system-arm qemu-efi u-boot-tools binfmt-support \
         debootstrap flex libssl-dev bc rsync kmod cpio xz-utils fakeroot parted \
         udev dosfstools uuid-runtime git-lfs device-tree-compiler python2 python3 \
-        python-is-python3 fdisk bc debhelper pip swig python3-pyelftools tree
+        python-is-python3 fdisk bc debhelper pip swig python3-pyelftools tree \
+        pkg-config genext2fs libconfuse-dev 
+
+        cd ..
+        git clone https://github.com/pengutronix/genimage.git
+        cd genimage
+        ./autogen.sh
+        ./configure CFLAGS='-g -O0' --prefix=/usr
+        make install 
+        which genimage
 
     - name: complie
       run: |
+        cd rockchip-build
         echo "now you are in ${PWD}"
         tree
         sudo ./build.sh -b $BOARD
