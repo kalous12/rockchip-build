@@ -85,7 +85,8 @@ dosfstools mtools parted ntfs-3g zip atop network-manager netplan.io file \
 p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
 net-tools wireless-tools openssh-client openssh-server ifupdown sudo bzip2 \
 pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
-gcc libc6-dev bison libssl-dev flex flash-kernel fake-hwclock rfkill inetutils-ping
+gcc libc6-dev bison libssl-dev flex flash-kernel fake-hwclock rfkill \
+fdisk 
 
 # Remove cryptsetup and needrestart
 apt-get -y remove cryptsetup needrestart
