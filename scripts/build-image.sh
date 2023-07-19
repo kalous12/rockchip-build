@@ -68,6 +68,8 @@ if [[ "${BOARD}" == lubancat2 ]]; then
     OVERLAY_PREFIX=
 fi
 
+img="../images/$(basename "${rootfs}" .rootfs.tar).img"
+
 overlay_dir=../overlay
 
 loader_dir=loader
@@ -86,6 +88,13 @@ mount_point=/tmp/mnt
 umount "${disk}"* 2> /dev/null || true
 umount ${mount_point}/* 2> /dev/null || true
 mkdir -p ${mount_point}
+
+for file in ${rootfs_dir} ${boot_dir} ${loader_dir} ; do
+    if [[ -d ${file} ]] ; then 
+        rm -r ${file}
+        echo "remove unused dir"
+    fi
+done 
 
 # Mount partitions
 mkdir -p ${rootfs_dir} ${boot_dir} ${loader_dir}
@@ -172,7 +181,6 @@ cp -rfp ${rootfs_dir}/usr/lib/u-boot-"${VENDOR}"/* "${loader_dir}"
 #create boot and rootfs dir to mount img 
 mkdir -p ${mount_point}/{system-boot,writable} 
 
-
 echo "creat boot.img"
 # creat boot.img
 truncate -s ${boot_size}M ${boot_img}
@@ -194,87 +202,26 @@ echo "resize rootfs.img"
 e2fsck -p -f "${rootfs_img}"
 resize2fs -M "${rootfs_img}"
 
-# Create an empty disk image
-echo "Create an empty disk image"
-img="../images/$(basename "${rootfs}" .rootfs.tar).img"
-size=$(( $(wc -c < boot.img) + $(wc -c < rootfs.img) + 32768 * 512 ))
-size_m=$(( size / 1024 / 1024 + 10 ))
-truncate -s "${size_m}M" "${img}"
-echo "image large is $size_m"
+# check tools
+if [[ ! $(which genimage) ]] ; then 
+    echo "You need to install genimage"
+    exit 0
+fi
 
-# Create loop device for disk image
-echo "Create loop device for disk image"
-loop="$(losetup -f)"
-losetup "${loop}" "${img}"
-disk="${loop}"
+mv ${boot_img} ${loader_dir}
+mv ${rootfs_img} ${loader_dir}
 
-# Cleanup loopdev on early exit
-echo "Cleanup loopdev on early exit"
-trap 'cleanup_loopdev ${loop}' EXIT
-
-# Setup partition table
-echo "Setup partition table"
-dd if=/dev/zero of="${disk}" count=4096 bs=512
-parted --script "${disk}" \
-mklabel gpt \
-mkpart primary fat16 16MiB 272MiB \
-mkpart primary ext4 272MiB 100%
-
-set +e
-
-# Create partitions
-fdisk "${disk}" << EOF
-t
-1
-BC13C2FF-59E6-4262-A352-B275FD6F7172
-t
-2
-0FC63DAF-8483-4772-8E79-3D69D8477DE4
-w
-EOF
-
-set -eE
-
-partprobe "${disk}"
-
-partition_char="$(if [[ ${disk: -1} == [0-9] ]]; then echo p; fi)"
-
-sleep 1
-
-wait_loopdev "${disk}${partition_char}2" 60 || {
-    echo "Failure to create ${disk}${partition_char}1 in time"
-    exit 1
-}
-
-sleep 1
-
-wait_loopdev "${disk}${partition_char}1" 60 || {
-    echo "Failure to create ${disk}${partition_char}1 in time"
-    exit 1
-}
-
-sleep 1
-
-# Write bootloader to disk image
-dd if=${loader_dir}/idbloader.img of="${loop}" seek=64 conv=notrunc
-dd if=${loader_dir}/u-boot.itb of="${loop}" seek=16384 conv=notrunc
-
-dd if=${boot_img} of=${disk}${partition_char}1 bs=1M
-dd if=${rootfs_img} of=${disk}${partition_char}2 bs=1M
-
-sync --file-system
-sync
-
-# Remove loop device
-losetup -d "${loop}"
+genimage --inputpath ${loader_dir} --outputpath ../images --config ../conf/genimage.cfg
+rm -r tmp
+mv ../images/sdcard.img ${img}
 
 # Exit trap is no longer needed
 trap '' EXIT
 
 echo -e "\nCompressing $(basename "${img}.xz")\n"
 xz -3 --force --keep --quiet --threads=0 "${img}"
-rm ${boot_img}
-rm ${rootfs_img} 
-rm -r ${rootfs_dir} ${boot_dir} ${loader_dir}
+# rm ${boot_img}
+# rm ${rootfs_img} 
+# rm -r ${rootfs_dir} ${boot_dir} ${loader_dir}
 cd ../images && sha256sum "$(basename "${img}.xz")" > "$(basename "${img}.xz.sha256")"
 rm ${img}
