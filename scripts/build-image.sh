@@ -151,7 +151,7 @@ mkimage -A arm64 -O linux -T script -C none -n "Boot Script" -d ${boot_dir}/boot
 
 # Uboot env
 cat > ${boot_dir}/uEnv.txt << EOF
-uname_r=6.4.0
+uname_r=6.4
 bootargs=root=UUID=${root_uuid} rootfstype=ext4 rootwait rw console=ttyS2,1500000 
 fdtfile=${DEVICE_TREE}
 overlay_prefix=${OVERLAY_PREFIX}
@@ -161,17 +161,17 @@ kernel_comp_size=0x04000000
 EOF
 
 # Copy kernel and initrd to boot partition
-cp ${rootfs_dir}/boot/initrd.img-6.4.0 ${boot_dir}
-cp ${rootfs_dir}/boot/vmlinuz-6.4.0 ${boot_dir}
+cp ${rootfs_dir}/boot/initrd.img-6.4 ${boot_dir}
+cp ${rootfs_dir}/boot/vmlinuz-6.4 ${boot_dir}
 
 # Copy device trees to boot partition
-mv ${rootfs_dir}/boot/firmware/* ${boot_dir}
+mv ${rootfs_dir}/boot/core/* ${boot_dir}
 
 # Create fstab entries
 boot_uuid_fstab="${boot_uuid:0:4}-${boot_uuid:4:4}"
 cat > ${rootfs_dir}/etc/fstab << EOF
 # <file system>     <mount point>  <type>  <options>   <dump>  <fsck>
-UUID=${boot_uuid_fstab^^} /boot vfat    defaults    0       2
+UUID=${boot_uuid_fstab^^} /boot/core vfat    defaults    0       2
 UUID=${root_uuid,,} /              ext4    defaults    0       1
 EOF
 

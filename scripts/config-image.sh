@@ -22,7 +22,7 @@ if [[ -z ${VENDOR} ]]; then
 fi
 
 if [[ ${LAUNCHPAD} != "Y" ]]; then
-    for file in linux-{headers,image}-6.4.0*.deb; do
+    for file in linux-{headers,image}-6.4*.deb; do
         if [ ! -e "$file" ]; then
             echo "Error: missing kernel debs, please run build-kernel.sh"
             exit 1
@@ -70,22 +70,22 @@ overlay_dir=../overlay
     echo "Install the kernel"
     # Install the kernel
     if [[ ${LAUNCHPAD}  == "Y" ]]; then
-        chroot ${chroot_dir} /bin/bash -c "apt-get -y install linux-image-6.4.0 linux-headers-6.4.0"
+        chroot ${chroot_dir} /bin/bash -c "apt-get -y install linux-image-6.4 linux-headers-6.4"
     else
-        cp linux-{headers,image}-6.4.0_*.deb ${chroot_dir}/tmp
+        cp linux-{headers,image}-6.4_*.deb ${chroot_dir}/tmp
         chroot ${chroot_dir} /bin/bash -c "dpkg -i /tmp/linux-{headers,image}-*.deb && rm -rf /tmp/*"
-        chroot ${chroot_dir} /bin/bash -c "apt-mark hold linux-image-6.4.0 linux-headers-6.4.0"
+        chroot ${chroot_dir} /bin/bash -c "apt-mark hold linux-image-6.4 linux-headers-6.4"
     fi
 
     echo "Generate kernel module dependencies"
     # Generate kernel module dependencies
-    chroot ${chroot_dir} /bin/bash -c "depmod -a 6.4.0"
+    chroot ${chroot_dir} /bin/bash -c "depmod -a 6.4"
 
     echo "Copy device trees"
     # Copy device trees and overlays
-    mkdir -p ${chroot_dir}/boot/firmware/dtbs/overlays
-    cp ${chroot_dir}/usr/lib/linux-image-6.4.0/rockchip/*.dtb ${chroot_dir}/boot/firmware/dtbs
-    # cp ${chroot_dir}/usr/lib/linux-image-6.4.0/rockchip/overlay/*.dtbo ${chroot_dir}/boot/firmware/dtbs/overlays
+    mkdir -p ${chroot_dir}/boot/core/dtbs/overlays
+    cp ${chroot_dir}/usr/lib/linux-image-6.4/rockchip/*.dtb ${chroot_dir}/boot/core/dtbs
+    # cp ${chroot_dir}/usr/lib/linux-image-6.4/rockchip/overlay/*.dtbo ${chroot_dir}/boot/core/dtbs/overlays
 
     echo "Install the bootloader"
     # Install the bootloader
@@ -99,7 +99,7 @@ overlay_dir=../overlay
 
     echo "Update initramfs"
     # Update initramfs
-    if [[ ! -f ${chroot_dir}/boot/initrd.img-6.4.0 ]]; then
+    if [[ ! -f ${chroot_dir}/boot/initrd.img-6.4 ]]; then
         chroot ${chroot_dir} /bin/bash -c "update-initramfs -u"
     else 
         echo skip

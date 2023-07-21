@@ -23,8 +23,13 @@ cd linux
 
 # Compile kernel into a deb package
 make rk3568_lubancat2_defconfig ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- 
-make bindeb-pkg ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j32 KERNELRELEASE=6.4.0 KDEB_PKGVERSION=1
+make bindeb-pkg ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j32 KERNELRELEASE=6.4 KDEB_PKGVERSION=1
 
-rm ../linux-image*dbg*.deb
-rm ../linux-libc*
+for file in ../linux-image*dbg*.deb ../linux-libc* ; do
+    if [[ -f ${file} ]] ; then 
+        rm ${file}
+        echo "remove unused dir"
+    fi
+done 
+
 rm -f ../*.buildinfo ../*.changes
