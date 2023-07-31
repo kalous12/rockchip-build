@@ -191,7 +191,7 @@ umount ${boot_img}
 
 echo "creat rootfs.img"
 # creat rootfs.img
-truncate -s 8192M ${rootfs_img}
+truncate -s 12192M ${rootfs_img}
 mkfs.ext4 -U "${root_uuid}" -L ROOTFS "${rootfs_img}"
 mount ${rootfs_img} ${mount_point}/writable
 cp -rfp ${rootfs_dir}/* ${mount_point}/writable
