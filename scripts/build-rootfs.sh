@@ -88,11 +88,6 @@ pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
 gcc libc6-dev bison libssl-dev flex usbutils fake-hwclock rfkill \
 fdisk linux-firmware iperf3 dialog
 
-# Remove cryptsetup and needrestart
-apt-get -y remove cryptsetup needrestart
-
-# Clean package cache
-apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
 EOF
 
 # Swapfile
@@ -105,6 +100,39 @@ EOF
 # mkswap /tmp/swapfile
 # mv /tmp/swapfile /swapfile
 # EOF
+
+
+cp ../packages/mesa/mesa-driver_1.0.0_arm64.deb ${chroot_dir}/root
+
+#install gpus
+cat << EOF | chroot ${chroot_dir} /bin/bash
+set -eE 
+trap 'echo Error: in $0 on line $LINENO' ERR
+
+# Download and update installed packages
+apt install pkg-config libwayland-bin wayland-protocols 
+
+cd /root
+
+dpkg -i *.deb
+
+apt install ubuntu-desktop
+
+EOF
+
+
+##
+cat << EOF | chroot ${chroot_dir} /bin/bash
+
+set -eE 
+trap 'echo Error: in $0 on line $LINENO' ERR
+
+# Remove cryptsetup and needrestart
+apt-get -y remove cryptsetup needrestart
+
+# Clean package cache
+apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
+EOF
 
 # add user
 cat << EOF | chroot ${chroot_dir} /bin/bash
