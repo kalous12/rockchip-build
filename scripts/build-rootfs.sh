@@ -35,15 +35,18 @@ overlay_dir=../overlay
 umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true
 umount -lf ${chroot_dir}/* 2> /dev/null || true
 rm -rf ${chroot_dir}
-mkdir -p ${chroot_dir}
 
 # Install the base system into a directory 
 # debootstrap --arch ${arch} ${release} ${chroot_dir} ${mirror}
 
 if [[ ! -f ubuntu-base-${version}-base-${arch}.tar.gz ]];then
-	wget http://cdimage.ubuntu.com/ubuntu-base/releases/${version}/release/ubuntu-base-${version}-base-${arch}.tar.gz
+  mkdir -p ${chroot_dir}
+  debootstrap --arch ${arch} ${release} ${chroot_dir} ${mirror}
+	tar -czf ubuntu-base-${version}-base-${arch}.tar.gz -C ${chroot_dir} .
+  rm -r ${chroot_dir}
 fi
 
+mkdir -p ${chroot_dir}
 tar -xzf ubuntu-base-${version}-base-${arch}.tar.gz -C ${chroot_dir}
 cp -b /etc/resolv.conf ${chroot_dir}/etc/resolv.conf
 
@@ -75,13 +78,12 @@ cat << EOF | chroot ${chroot_dir} /bin/bash
 set -eE 
 trap 'echo Error: in $0 on line $LINENO' ERR
 
-# Download and update installed packages
-apt-get -y update && apt-get -y upgrade
-
-apt-get -y install locales
-
+# Update localisation files
 locale-gen en_US.UTF-8
 update-locale LANG="en_US.UTF-8"
+
+# Download and update installed packages
+apt-get -y update && apt-get -y upgrade
 
 # Download and install generic packages
 apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools inetutils-ping \
@@ -91,10 +93,8 @@ p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
 net-tools wireless-tools openssh-client openssh-server ifupdown sudo bzip2 \
 pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
 gcc libc6-dev bison libssl-dev flex usbutils fake-hwclock rfkill \
-fdisk linux-firmware iperf3 dialog
+fdisk linux-firmware iperf3 dialog snapd
 
-# Remove cryptsetup and needrestart
-apt-get -y remove cryptsetup needrestart
 
 # Clean package cache
 apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
@@ -174,9 +174,6 @@ apt-get -y update
 # Download and update installed packages
 apt-get -y install pkg-config libwayland-bin wayland-protocols ubuntu-desktop pavucontrol \
 chromium-browser firefox pulseaudio mesa-utils libgbm-dev
-
-# Remove cryptsetup and needrestart
-apt-get -y remove cryptsetup needrestart
 
 # Clean package cache
 apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
