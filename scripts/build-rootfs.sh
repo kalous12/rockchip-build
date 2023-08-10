@@ -173,7 +173,7 @@ apt-get -y update
 
 # Download and update installed packages
 apt-get -y install pkg-config libwayland-bin wayland-protocols ubuntu-desktop pavucontrol \
-chromium-browser firefox pulseaudio mesa-utils libgbm-dev
+chromium-browser firefox pulseaudio libgbm-dev
 
 # Clean package cache
 apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
@@ -207,11 +207,11 @@ chroot ${chroot_dir} /bin/bash -c "systemctl enable resize-filesystem"
 mkdir -p ${chroot_dir}/lib/systemd/system/serial-getty@.service.d
 cp ${overlay_dir}/usr/lib/systemd/system/serial-getty@.service.d/10-term.conf ${chroot_dir}/usr/lib/systemd/system/serial-getty@.service.d/10-term.conf
 
-cp ../packages/mesa/mesa-driver_1.0.0_arm64.deb ${chroot_dir}/root
+cp ../packages/mesa/g52-mesa_1.0.0_arm64.deb ${chroot_dir}/root
 
 cat << EOF | chroot ${chroot_dir} /bin/bash
 
-dpkg -i /root/mesa-driver_1.0.0_arm64.deb
+dpkg -i /root/g52-mesa_1.0.0_arm64.deb
 
 EOF
 
