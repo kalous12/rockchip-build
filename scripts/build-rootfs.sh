@@ -93,7 +93,7 @@ p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
 net-tools wireless-tools openssh-client openssh-server ifupdown sudo bzip2 \
 pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
 gcc libc6-dev bison libssl-dev flex usbutils fake-hwclock rfkill \
-fdisk linux-firmware iperf3 dialog snapd
+fdisk linux-firmware iperf3 dialog mmc-utils
 
 
 # Clean package cache

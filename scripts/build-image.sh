@@ -74,12 +74,10 @@ overlay_dir=../overlay
 
 loader_dir=loader
 
-boot_dir=boot
 boot_img=boot.img
 boot_size=256
 boot_uuid=$(uuidgen | head -c8)
 
-rootfs_dir=rootfs
 rootfs_img=rootfs.img
 root_uuid=$(uuidgen)
 
@@ -89,15 +87,28 @@ umount "${disk}"* 2> /dev/null || true
 umount ${mount_point}/* 2> /dev/null || true
 mkdir -p ${mount_point}
 
-for file in ${rootfs_dir} ${boot_dir} ${loader_dir} ; do
-    if [[ -d ${file} ]] ; then 
-        rm -r ${file}
-        echo "remove unused dir"
-    fi
-done 
+if [[ -d ${loader_dir} ]] ; then 
+    rm -r ${loader_dir}
+    echo "remove unused dir"
+fi
 
-# Mount partitions
-mkdir -p ${rootfs_dir} ${boot_dir} ${loader_dir}
+#create boot and rootfs dir to mount img 
+mkdir -p ${loader_dir} ${mount_point}/{system-boot,writable} 
+
+echo "creat boot.img"
+# creat boot.img
+truncate -s ${boot_size}M ${boot_img}
+mkfs.vfat -i "${boot_uuid}" -F16 -n BOOT "${boot_img}"
+mount ${boot_img} ${mount_point}/system-boot
+
+echo "creat rootfs.img"
+# creat rootfs.img
+truncate -s 12192M ${rootfs_img}
+mkfs.ext4 -U "${root_uuid}" -L ROOTFS "${rootfs_img}"
+mount ${rootfs_img} ${mount_point}/writable
+
+rootfs_dir=${mount_point}/writable
+boot_dir=${mount_point}/system-boot
 
 # Copy the rootfs to rootfs partition
 tar -xpf "${rootfs}" -C ${rootfs_dir}
@@ -178,23 +189,10 @@ EOF
 # Copy u-boot fireware to loader_dir
 cp -rfp ${rootfs_dir}/usr/lib/u-boot-"${VENDOR}"/* "${loader_dir}"
 
-#create boot and rootfs dir to mount img 
-mkdir -p ${mount_point}/{system-boot,writable} 
+# tar czf rootfs.tar.gz ${rootfs_dir}
 
-echo "creat boot.img"
-# creat boot.img
-truncate -s ${boot_size}M ${boot_img}
-mkfs.vfat -i "${boot_uuid}" -F16 -n BOOT "${boot_img}"
-mount ${boot_img} ${mount_point}/system-boot
-cp -rfp ${boot_dir}/* ${mount_point}/system-boot
+# umount 
 umount ${boot_img}
-
-echo "creat rootfs.img"
-# creat rootfs.img
-truncate -s 12192M ${rootfs_img}
-mkfs.ext4 -U "${root_uuid}" -L ROOTFS "${rootfs_img}"
-mount ${rootfs_img} ${mount_point}/writable
-cp -rfp ${rootfs_dir}/* ${mount_point}/writable
 umount ${rootfs_img}
 
 echo "resize rootfs.img"
