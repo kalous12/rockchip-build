@@ -30,6 +30,7 @@ if [ ! -d u-boot-"${VENDOR}" ]; then
     else
         git clone --depth=1 --progress -b "${BRANCH}" "${GIT}" u-boot-"${VENDOR}"
         cp -r ../packages/u-boot/u-boot-"${VENDOR}"/debian u-boot-"${VENDOR}"
+        cp ../packages/u-boot/rk356x.dtsi u-boot-"${VENDOR}"/arch/arm/dts/rk356x.dtsi
     fi
 fi
 
