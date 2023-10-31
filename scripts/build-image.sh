@@ -51,7 +51,7 @@ fi
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p images build && cd build
 BOARD=lubancat2
-VENDOR=lubancat2
+VENDOR=lubancat-rk3568
 
 if [[ -z ${BOARD} ]]; then
     echo "Error: BOARD is not set"
@@ -123,16 +123,19 @@ cat > ${boot_dir}/boot.cmd << 'EOF'
 # Recompile with:
 # mkimage -A arm64 -O linux -T script -C none -n "Boot Script" -d boot.cmd boot.scr
 
-setenv load_addr "0x9000000"
+setenv load_addr "0x7900000"
 setenv overlay_error "false"
 
 echo "Boot script loaded from ${devtype} ${devnum}"
+echo "start to go"
 
 if test -e ${devtype} ${devnum}:${distro_bootpart} /uEnv.txt; then
+    echo "load ${devtype} ${devnum}:${distro_bootpart} ${load_addr} /uEnv.txt"
 	load ${devtype} ${devnum}:${distro_bootpart} ${load_addr} /uEnv.txt
 	env import -t ${load_addr} ${filesize}
 fi
 
+echo "load ${devtype} ${devnum}:${distro_bootpart} ${fdt_addr_r} /dtbs/${fdtfile}"
 load ${devtype} ${devnum}:${distro_bootpart} ${fdt_addr_r} /dtbs/${fdtfile}
 fdt addr ${fdt_addr_r} && fdt resize 0x10000
 
@@ -153,27 +156,29 @@ if test "${overlay_error}" = "true"; then
     load ${devtype} ${devnum}:${distro_bootpart} ${fdt_addr_r} /dtbs/${fdtfile}
 fi
 
+echo "load ${devtype} ${devnum}:${distro_bootpart} ${kernel_addr_r} /vmlinuz-${uname_r}"
 load ${devtype} ${devnum}:${distro_bootpart} ${kernel_addr_r} /vmlinuz-${uname_r}
+
+echo "load ${devtype} ${devnum}:${distro_bootpart} ${ramdisk_addr_r} /initrd.img-${uname_r}"
 load ${devtype} ${devnum}:${distro_bootpart} ${ramdisk_addr_r} /initrd.img-${uname_r}
 
+echo "booti ${kernel_addr_r} ${ramdisk_addr_r}:${filesize} ${fdt_addr_r}"
 booti ${kernel_addr_r} ${ramdisk_addr_r}:${filesize} ${fdt_addr_r}
 EOF
 mkimage -A arm64 -O linux -T script -C none -n "Boot Script" -d ${boot_dir}/boot.cmd ${boot_dir}/boot.scr
 
 # Uboot env
 cat > ${boot_dir}/uEnv.txt << EOF
-uname_r=5.10.160
-bootargs=root=UUID=${root_uuid} rootfstype=ext4 rootwait rw console=ttyS2,1500000 
+uname_r=5.10.160-rockchip
+bootargs=root=UUID=${root_uuid} rootfstype=ext4 rootwait rw console=ttyS2,1500000 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=0
 fdtfile=${DEVICE_TREE}
 overlay_prefix=${OVERLAY_PREFIX}
 overlays=
-kernel_comp_addr_r=0x19000000
-kernel_comp_size=0x04000000
 EOF
 
 # Copy kernel and initrd to boot partition
-cp ${rootfs_dir}/boot/initrd.img-5.10.160 ${boot_dir}
-cp ${rootfs_dir}/boot/vmlinuz-5.10.160 ${boot_dir}
+cp ${rootfs_dir}/boot/initrd.img-5.10.160* ${boot_dir}
+cp ${rootfs_dir}/boot/vmlinuz-5.10.160* ${boot_dir}
 
 # Copy device trees to boot partition
 mv ${rootfs_dir}/boot/core/* ${boot_dir}
