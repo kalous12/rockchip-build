@@ -9,30 +9,29 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
+mkdir -p build
 
-mkdir -p build && cd build
-
-kernel_version=5.10.160
-
-if [ ! -d linux ]; then
-    # git clone --depth=1 --progress -b v6.4 https://github.com/torvalds/linux.git linux
-    git clone --depth=1 https://github.com/kalous12/rockchip-kernel.git linux
-    # cp ../packages/linux/config/* linux/arch/arm64/configs
-    # cp -rfp ../packages/linux/dtc/* linux/arch/arm64/boot/dts/rockchip
+if [[ $1 = "-f" ]]; then
+    echo "rebuild"
+    if [ -d linux-rockchip ]; then
+        rm -r linux-rockchip
+    fi
 fi
 
-cd linux
 
-# Compile kernel into a deb package
-# make rk3568_lubancat2_defconfig ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- 
-make rockchip_linux_defconfig ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- 
-make KBUILD_IMAGE='$(boot)/Image' bindeb-pkg ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KERNELRELEASE=5.10.160 KDEB_PKGVERSION=1 -j32
-
-for file in ../linux-image*dbg*.deb ../linux-libc* ; do
-    if [[ -f ${file} ]] ; then 
-        rm ${file}
-        echo "remove unused dir"
+if [ ! -d linux-rockchip ]; then
+    git clone --depth=1 --progress -b linux-5.10-gen-rkr6 https://github.com/Joshua-Riek/linux-rockchip.git linux-rockchip
+    if [ -f packages/linux/patches/series ] ;then
+        for i in `cat packages/linux/patches/series`;do  
+            echo "patch -d linux-rockchip -p1 < packages/linux/patches/$i";
+            patch -d linux-rockchip -p1 < packages/linux/patches/"$i";
+        done
     fi
-done 
+fi
 
+cd linux-rockchip
+# Compile kernel into a deb package
+dpkg-buildpackage -a "$(cat debian/arch)" -d -b -nc -uc
 rm -f ../*.buildinfo ../*.changes
+cd ../
+mv *.deb build/

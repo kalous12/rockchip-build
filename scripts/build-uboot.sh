@@ -11,31 +11,33 @@ fi
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p build && cd build
 
-VENDOR=lubancat2
+VENDOR=lubancat-rk3568
 
 if [[ -z ${VENDOR} ]]; then
     echo "Error: VENDOR is not set"
     exit 1
 fi
 
+if [[ $1 = "-f" ]]; then
+    echo "rebuild"
+    if [ -d u-boot-"${VENDOR}" ]; then
+        rm -r u-boot-"${VENDOR}"
+    fi
+fi
 
 if [ ! -d u-boot-"${VENDOR}" ]; then
     # shellcheck source=/dev/null
     source ../packages/u-boot/u-boot-"${VENDOR}"/debian/upstream
-    if [ ${COMMIT} ]; then
-        echo COMMIT=${COMMIT}
-        git clone --single-branch --progress -b "${BRANCH}" "${GIT}" u-boot-"${VENDOR}"
-        git -C u-boot-"${VENDOR}" checkout "${COMMIT}"
-        cp -r ../packages/u-boot-"${VENDOR}"/debian u-boot-"${VENDOR}"
-    else
-        git clone --depth=1 --progress -b "${BRANCH}" "${GIT}" u-boot-"${VENDOR}"
-        cp -r ../packages/u-boot/u-boot-"${VENDOR}"/debian u-boot-"${VENDOR}"
-        cp ../packages/u-boot/rk356x.dtsi u-boot-"${VENDOR}"/arch/arm/dts/rk356x.dtsi
+    git clone --single-branch --progress -b "${BRANCH}" "${GIT}" u-boot-"${VENDOR}"
+    git -C u-boot-"${VENDOR}" checkout "${COMMIT}"
+    cp -r ../packages/u-boot/u-boot-"${VENDOR}"/debian u-boot-"${VENDOR}"
+    cd u-boot-"${VENDOR}"
+
+    if [ -f debian/patches/series ] ;then
+       for i in `cat debian/patches/series`;
+       do patch -p1 < debian/patches/"$i";done
     fi
 fi
-
-cp -r ../packages/u-boot/u-boot-"${VENDOR}"/debian u-boot-"${VENDOR}"
-cd u-boot-"${VENDOR}"
 
 # Compile u-boot into a deb package
 dpkg-buildpackage -a "$(cat debian/arch)" -d -b -nc -uc

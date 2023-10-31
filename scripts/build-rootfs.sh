@@ -172,8 +172,10 @@ trap 'echo Error: in $0 on line $LINENO' ERR
 apt-get -y update
 
 # Download and update installed packages
-apt-get -y install pkg-config libwayland-bin wayland-protocols ubuntu-desktop pavucontrol \
-chromium-browser firefox pulseaudio libgbm-dev
+apt-get -y install pkg-config libwayland-bin wayland-protocols \
+pulseaudio libgbm-dev python3-mako cmake zlib1g-dev libexpat-dev \
+pkg-config libdrm-dev libwayland-dev libwayland-bin \
+wayland-protocols  libwayland-egl-backend-dev 
 
 # Clean package cache
 apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
