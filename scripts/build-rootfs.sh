@@ -72,6 +72,7 @@ mount -t sysfs /sys ${chroot_dir}/sys
 mount -o bind /dev ${chroot_dir}/dev
 mount -o bind /dev/pts ${chroot_dir}/dev/pts
 
+cp ${overlay_dir}/etc/apt/preferences.d/rockchip-multimedia-ppa ${chroot_dir}/etc/apt/preferences.d/rockchip-multimedia-ppa
 
 # Download and update packages
 cat << EOF | chroot ${chroot_dir} /bin/bash
@@ -81,6 +82,10 @@ trap 'echo Error: in $0 on line $LINENO' ERR
 # Update localisation files
 locale-gen en_US.UTF-8
 update-locale LANG="en_US.UTF-8"
+
+apt-get -y update && apt-get -y install software-properties-common
+add-apt-repository -y ppa:liujianfeng1994/panfork-mesa
+add-apt-repository -y ppa:liujianfeng1994/rockchip-multimedia
 
 # Download and update installed packages
 apt-get -y update && apt-get -y upgrade
@@ -165,22 +170,22 @@ sync
 EOF
 
 #install gpus
-cat << EOF | chroot ${chroot_dir} /bin/bash
-set -eE 
-trap 'echo Error: in $0 on line $LINENO' ERR
+# cat << EOF | chroot ${chroot_dir} /bin/bash
+# set -eE 
+# trap 'echo Error: in $0 on line $LINENO' ERR
 
-apt-get -y update
+# apt-get -y update
 
-# Download and update installed packages
-apt-get -y install pkg-config libwayland-bin wayland-protocols \
-pulseaudio libgbm-dev python3-mako cmake zlib1g-dev libexpat-dev \
-pkg-config libdrm-dev libwayland-dev libwayland-bin \
-wayland-protocols  libwayland-egl-backend-dev 
+# # Download and update installed packages
+# apt-get -y install pkg-config libwayland-bin wayland-protocols \
+# pulseaudio libgbm-dev python3-mako cmake zlib1g-dev libexpat-dev \
+# pkg-config libdrm-dev libwayland-dev libwayland-bin \
+# wayland-protocols  libwayland-egl-backend-dev 
 
-# Clean package cache
-apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
+# # Clean package cache
+# apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
 
-EOF
+# EOF
 
 # DNS
 cp ${overlay_dir}/etc/resolv.conf ${chroot_dir}/etc/resolv.conf
@@ -209,12 +214,34 @@ chroot ${chroot_dir} /bin/bash -c "systemctl enable resize-filesystem"
 mkdir -p ${chroot_dir}/lib/systemd/system/serial-getty@.service.d
 cp ${overlay_dir}/usr/lib/systemd/system/serial-getty@.service.d/10-term.conf ${chroot_dir}/usr/lib/systemd/system/serial-getty@.service.d/10-term.conf
 
-cp ../packages/mesa/g52-mesa_*.deb ${chroot_dir}/root
+# cp ../packages/mesa/g52-mesa_*.deb ${chroot_dir}/root
+
+# cat << EOF | chroot ${chroot_dir} /bin/bash
+
+# # dpkg -i /root/g52-mesa_*.deb
+
+# EOF
 
 cat << EOF | chroot ${chroot_dir} /bin/bash
+set -eE 
+trap 'echo Error: in $0 on line $LINENO' ERR
 
-dpkg -i /root/g52-mesa_*.deb
+# Desktop packages
+apt-get -y install ubuntu-desktop dbus-x11 xterm pulseaudio pavucontrol qtwayland5 \
+gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-plugins-good mpv \
+gstreamer1.0-tools gstreamer1.0-rockchip1 chromium-browser mali-g610-firmware malirun \
+rockchip-multimedia-config librist4 librist-dev rist-tools dvb-tools ir-keytable \
+libdvbv5-0 libdvbv5-dev libdvbv5-doc libv4l-0 libv4l2rds0 libv4lconvert0 libv4l-dev \
+libv4l-rkmpp qv4l2 v4l-utils librockchip-mpp1 librockchip-mpp-dev librockchip-vpu0 \
+rockchip-mpp-demos librga2 librga-dev libegl-mesa0 libegl1-mesa-dev libgbm-dev \
+libgl1-mesa-dev libgles2-mesa-dev libglx-mesa0 mesa-common-dev mesa-vulkan-drivers \
+mesa-utils libwidevinecdm libcanberra-pulse
 
+# Remove cloud-init and landscape-common
+apt-get -y purge cloud-init landscape-common
+
+# Clean package cache
+apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
 EOF
 
 # Umount temporary API filesystems
