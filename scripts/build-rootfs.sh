@@ -94,14 +94,15 @@ add-apt-repository -y ppa:liujianfeng1994/rockchip-multimedia
 apt-get -y update && apt-get -y upgrade
 
 # Download and install generic packages
-apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools cloud-init \
-bash-completion man-db manpages nano gnupg initramfs-tools mmc-utils rfkill \
-ubuntu-drivers-common ubuntu-server dosfstools mtools parted ntfs-3g zip atop \
+
+apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools inetutils-ping \
+bash-completion man-db manpages nano gnupg initramfs-tools locales vim \
+dosfstools mtools parted ntfs-3g zip atop network-manager netplan.io file \
 p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
-net-tools wireless-tools openssh-client openssh-server wpasupplicant ifupdown \
-pigz wget curl lm-sensors bluez gdisk usb-modeswitch usb-modeswitch-data make \
-gcc libc6-dev bison libssl-dev flex flash-kernel fake-hwclock wireless-regdb \
-uuid-runtime rsync linux-firmware rockchip-firmware
+net-tools wireless-tools openssh-client openssh-server ifupdown sudo bzip2 \
+pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
+gcc libc6-dev bison libssl-dev flex usbutils fake-hwclock rfkill \
+fdisk linux-firmware iperf3 dialog mmc-utils rockchip-firmware
 
 
 # Clean package cache
@@ -194,7 +195,7 @@ EOF
 cp ${overlay_dir}/etc/resolv.conf ${chroot_dir}/etc/resolv.conf
 
 # Networking interfaces
-ls -l ${overlay_dir}/etc/NetworkManager/NetworkManager.conf
+mkdir -p ${chroot_dir}/etc/NetworkManager
 cp -f ${overlay_dir}/etc/NetworkManager/NetworkManager.conf ${chroot_dir}/etc/NetworkManager/NetworkManager.conf
 cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf ${chroot_dir}/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf
 cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf ${chroot_dir}/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf
