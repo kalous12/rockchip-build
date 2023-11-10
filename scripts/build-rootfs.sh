@@ -72,6 +72,8 @@ mount -t sysfs /sys ${chroot_dir}/sys
 mount -o bind /dev ${chroot_dir}/dev
 mount -o bind /dev/pts ${chroot_dir}/dev/pts
 
+cp ${overlay_dir}/etc/apt/preferences.d/rockchip-ppa ${chroot_dir}/etc/apt/preferences.d/rockchip-ppa
+cp ${overlay_dir}/etc/apt/preferences.d/panfork-mesa-ppa ${chroot_dir}/etc/apt/preferences.d/panfork-mesa-ppa
 cp ${overlay_dir}/etc/apt/preferences.d/rockchip-multimedia-ppa ${chroot_dir}/etc/apt/preferences.d/rockchip-multimedia-ppa
 
 # Download and update packages
@@ -84,6 +86,7 @@ locale-gen en_US.UTF-8
 update-locale LANG="en_US.UTF-8"
 
 apt-get -y update && apt-get -y install software-properties-common
+add-apt-repository -y ppa:jjriek/rockchip
 add-apt-repository -y ppa:liujianfeng1994/panfork-mesa
 add-apt-repository -y ppa:liujianfeng1994/rockchip-multimedia
 
@@ -91,14 +94,14 @@ add-apt-repository -y ppa:liujianfeng1994/rockchip-multimedia
 apt-get -y update && apt-get -y upgrade
 
 # Download and install generic packages
-apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools inetutils-ping \
-bash-completion man-db manpages nano gnupg initramfs-tools locales vim \
-dosfstools mtools parted ntfs-3g zip atop network-manager netplan.io file \
+apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools cloud-init \
+bash-completion man-db manpages nano gnupg initramfs-tools mmc-utils rfkill \
+ubuntu-drivers-common ubuntu-server dosfstools mtools parted ntfs-3g zip atop \
 p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
-net-tools wireless-tools openssh-client openssh-server ifupdown sudo bzip2 \
-pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
-gcc libc6-dev bison libssl-dev flex usbutils fake-hwclock rfkill \
-fdisk linux-firmware iperf3 dialog mmc-utils
+net-tools wireless-tools openssh-client openssh-server wpasupplicant ifupdown \
+pigz wget curl lm-sensors bluez gdisk usb-modeswitch usb-modeswitch-data make \
+gcc libc6-dev bison libssl-dev flex flash-kernel fake-hwclock wireless-regdb \
+uuid-runtime rsync linux-firmware rockchip-firmware
 
 
 # Clean package cache
