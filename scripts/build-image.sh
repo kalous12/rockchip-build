@@ -221,10 +221,10 @@ mv ../images/sdcard.img ${img}
 # Exit trap is no longer needed
 trap '' EXIT
 
-echo -e "\nCompressing $(basename "${img}.xz")\n"
-xz -3 --force --keep --quiet --threads=0 "${img}"
-# rm ${boot_img}
-# rm ${rootfs_img} 
-# rm -r ${rootfs_dir} ${boot_dir} ${loader_dir}
-cd ../images && sha256sum "$(basename "${img}.xz")" > "$(basename "${img}.xz.sha256")"
-rm ${img}
+# echo -e "\nCompressing $(basename "${img}.xz")\n"
+# xz -3 --force --keep --quiet --threads=0 "${img}"
+# # rm ${boot_img}
+# # rm ${rootfs_img} 
+# # rm -r ${rootfs_dir} ${boot_dir} ${loader_dir}
+# cd ../images && sha256sum "$(basename "${img}.xz")" > "$(basename "${img}.xz.sha256")"
+# rm ${img}

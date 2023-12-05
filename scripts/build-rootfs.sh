@@ -11,7 +11,7 @@ fi
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p build && cd build
 
-if [[ -f ubuntu-22.04.2-server-arm64.rootfs.tar.xz ]]; then
+if [[ -f debian12-server-arm64.rootfs.tar.xz ]]; then
     exit 0
 fi
 
@@ -25,9 +25,9 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Debootstrap options
 arch=arm64
-release=jammy
-version=22.04.2
-mirror=http://mirrors.ustc.edu.cn/ubuntu-ports/
+release=bookworm
+version=12
+mirror=http://mirrors.ustc.edu.cn/debian
 chroot_dir=rootfs
 overlay_dir=../overlay
 
@@ -39,30 +39,31 @@ rm -rf ${chroot_dir}
 # Install the base system into a directory 
 # debootstrap --arch ${arch} ${release} ${chroot_dir} ${mirror}
 
-if [[ ! -f ubuntu-base-${version}-base-${arch}.tar.gz ]];then
+if [[ ! -f debian12-base-${version}-base-${arch}.tar.gz ]];then
   mkdir -p ${chroot_dir}
   debootstrap --arch ${arch} ${release} ${chroot_dir} ${mirror}
-	tar -czf ubuntu-base-${version}-base-${arch}.tar.gz -C ${chroot_dir} .
+	tar -czf debian12-base-${version}-base-${arch}.tar.gz -C ${chroot_dir} .
   rm -r ${chroot_dir}
 fi
 
 mkdir -p ${chroot_dir}
-tar -xzf ubuntu-base-${version}-base-${arch}.tar.gz -C ${chroot_dir}
+tar -xzf debian12-base-${version}-base-${arch}.tar.gz -C ${chroot_dir}
 cp -b /etc/resolv.conf ${chroot_dir}/etc/resolv.conf
+
+# Default adduser config
+# cp ${overlay_dir}/etc/adduser.conf ${chroot_dir}/etc/adduser.conf
 
 # Use a more complete sources.list file 
 cat > ${chroot_dir}/etc/apt/sources.list << EOF
-deb ${mirror} ${release} main restricted universe multiverse
-# deb-src ${mirror} ${release} main restricted universe multiverse
 
-deb ${mirror} ${release}-security main restricted universe multiverse
-# deb-src ${mirror} ${release}-security main restricted universe multiverse
+deb ${mirror} stable main contrib non-free non-free-firmware
+# deb-src ${mirror} stable main contrib non-free non-free-firmware
+deb ${mirror} stable-updates main contrib non-free non-free-firmware
+# deb-src ${mirror} stable-updates main contrib non-free non-free-firmware
 
-deb ${mirror} ${release}-updates main restricted universe multiverse
-# deb-src ${mirror} ${release}-updates main restricted universe multiverse
+deb ${mirror} stable-proposed-updates main contrib non-free non-free-firmware
+# deb-src ${mirror} stable-proposed-updates main contrib non-free non-free-firmware
 
-deb ${mirror} ${release}-backports main restricted universe multiverse
-# deb-src ${mirror} ${release}-backports main restricted universe multiverse
 EOF
 
 # Mount the temporary API filesystems
@@ -78,22 +79,23 @@ cat << EOF | chroot ${chroot_dir} /bin/bash
 set -eE 
 trap 'echo Error: in $0 on line $LINENO' ERR
 
-# Update localisation files
-locale-gen en_US.UTF-8
-update-locale LANG="en_US.UTF-8"
-
 # Download and update installed packages
 apt-get -y update && apt-get -y upgrade
 
+# apt-get -y install locales
+
+# # Update localisation files
+# locale-gen en_US.UTF-8
+
 # Download and install generic packages
 apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools inetutils-ping \
-bash-completion man-db manpages nano gnupg initramfs-tools locales vim \
+bash-completion man-db manpages nano gnupg initramfs-tools vim \
 dosfstools mtools parted ntfs-3g zip atop network-manager netplan.io file \
-p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
+p7zip-full htop iotop pciutils lshw lsof exfat-fuse hwinfo \
 net-tools wireless-tools openssh-client openssh-server ifupdown sudo bzip2 \
 pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
 gcc libc6-dev bison libssl-dev flex usbutils fake-hwclock rfkill \
-fdisk linux-firmware iperf3 dialog mmc-utils
+fdisk iperf3 dialog mmc-utils ntp rsyslog neofetch gdebi
 
 
 # Clean package cache
@@ -164,24 +166,6 @@ sed -i -e '
 sync
 EOF
 
-#install gpus
-cat << EOF | chroot ${chroot_dir} /bin/bash
-set -eE 
-trap 'echo Error: in $0 on line $LINENO' ERR
-
-apt-get -y update
-
-# Download and update installed packages
-apt-get -y install pkg-config libwayland-bin wayland-protocols \
-pulseaudio libgbm-dev python3-mako cmake zlib1g-dev libexpat-dev \
-pkg-config libdrm-dev libwayland-dev libwayland-bin \
-wayland-protocols  libwayland-egl-backend-dev 
-
-# Clean package cache
-apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
-
-EOF
-
 # DNS
 cp ${overlay_dir}/etc/resolv.conf ${chroot_dir}/etc/resolv.conf
 
@@ -198,22 +182,75 @@ cp ${overlay_dir}/usr/lib/systemd/system/resize-filesystem.service ${chroot_dir}
 chroot ${chroot_dir} /bin/bash -c "systemctl enable resize-filesystem"
 
 # Set cpu governor to performance
-# cp ${overlay_dir}/usr/lib/systemd/system/cpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/cpu-governor-performance.service
-# chroot ${chroot_dir} /bin/bash -c "systemctl enable cpu-governor-performance"
+cp ${overlay_dir}/usr/lib/systemd/system/cpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/cpu-governor-performance.service
+chroot ${chroot_dir} /bin/bash -c "systemctl enable cpu-governor-performance"
 
 # Set gpu governor to performance
-# cp ${overlay_dir}/usr/lib/systemd/system/gpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/gpu-governor-performance.service
-# chroot ${chroot_dir} /bin/bash -c "systemctl enable gpu-governor-performance"
+cp ${overlay_dir}/usr/lib/systemd/system/gpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/gpu-governor-performance.service
+chroot ${chroot_dir} /bin/bash -c "systemctl enable gpu-governor-performance"
 
 # Set term for serial tty
 mkdir -p ${chroot_dir}/lib/systemd/system/serial-getty@.service.d
 cp ${overlay_dir}/usr/lib/systemd/system/serial-getty@.service.d/10-term.conf ${chroot_dir}/usr/lib/systemd/system/serial-getty@.service.d/10-term.conf
 
-cp ../packages/mesa/g52-mesa_*.deb ${chroot_dir}/root
+# auto login
+cp ${overlay_dir}/usr/lib/systemd/system/serial-getty@.service ${chroot_dir}/usr/lib/systemd/system/serial-getty@.service
+
+# Use gzip compression for the initrd
+cp ${overlay_dir}/etc/initramfs-tools/conf.d/compression.conf ${chroot_dir}/etc/initramfs-tools/conf.d/compression.conf
+
+# Do not create bak files for flash-kernel
+echo "NO_CREATE_DOT_BAK_FILES=true" >> ${chroot_dir}/etc/environment
+
 
 cat << EOF | chroot ${chroot_dir} /bin/bash
+set -eE 
+trap 'echo Error: in $0 on line $LINENO' ERR
 
-dpkg -i /root/g52-mesa_*.deb
+# Download and install generic packages
+apt-get -y install libavcodec-dev libavfilter-dev libavutil-dev \
+libswresample-dev ffmpeg libavdevice59 libavformat59 libpostproc56 \
+libswscale6 ffmpeg-doc libavdevice-dev libavformat-dev libpostproc-dev \
+libswscale-dev libavcodec59 libavfilter8 libavutil57 libswresample4
+
+EOF
+
+mkdir -p ${chroot_dir}/package/hardware
+# install extra packages
+for PACKAGE_NAME in "librga2" "librockchip-mpp1" "gstreamer-rockchip" "rknpu2" "ffmpeg"
+do
+  cp ../packages/hardware/${PACKAGE_NAME}*.deb ${chroot_dir}/package/hardware
+  chroot ${chroot_dir} /bin/bash -c "dpkg -i /package/hardware/${PACKAGE_NAME}*.deb"
+done
+
+chroot ${chroot_dir} /bin/bash -c "apt-mark hold ffmpeg"
+
+# rga testfiles copy to rootfs
+mkdir -p ${chroot_dir}/usr/data
+cp ${overlay_dir}/usr/data/* ${chroot_dir}/usr/data/
+
+# make media run in user
+cp ${overlay_dir}/etc/udev/rules.d/99-rockchip-permissions.rules ${chroot_dir}/etc/udev/rules.d/
+
+# Download and update packages
+cat << EOF | chroot ${chroot_dir} /bin/bash
+set -eE 
+trap 'echo Error: in $0 on line $LINENO' ERR
+
+# Download and update installed packages
+apt-get -y update && apt-get -y upgrade
+
+apt install gnome mpv chromium mesa-utils wayland-protocols libsrt-openssl-dev libssh-dev
+
+# install gstream
+apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
+gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl \
+gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio gstreamer1.0-plugins-base-apps
+
+# Clean package cache
+apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
 
 EOF
 
@@ -222,4 +259,4 @@ umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true
 umount -lf ${chroot_dir}/* 2> /dev/null || true
 
 # Tar the entire rootfs
-cd ${chroot_dir} && XZ_OPT="-3 -T0" tar -cpJf ../ubuntu-22.04.2-server-arm64.rootfs.tar.xz . && cd ..
+cd ${chroot_dir} && XZ_OPT="-3 -T0" tar -cpJf ../debian12-server-arm64.rootfs.tar.xz . && cd ..
