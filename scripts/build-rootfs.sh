@@ -72,8 +72,6 @@ mount -t sysfs /sys ${chroot_dir}/sys
 mount -o bind /dev ${chroot_dir}/dev
 mount -o bind /dev/pts ${chroot_dir}/dev/pts
 
-cp ${overlay_dir}/etc/apt/preferences.d/rockchip-ppa ${chroot_dir}/etc/apt/preferences.d/rockchip-ppa
-cp ${overlay_dir}/etc/apt/preferences.d/panfork-mesa-ppa ${chroot_dir}/etc/apt/preferences.d/panfork-mesa-ppa
 cp ${overlay_dir}/etc/apt/preferences.d/rockchip-multimedia-ppa ${chroot_dir}/etc/apt/preferences.d/rockchip-multimedia-ppa
 
 # Download and update packages
@@ -86,8 +84,6 @@ locale-gen en_US.UTF-8
 update-locale LANG="en_US.UTF-8"
 
 apt-get -y update && apt-get -y install software-properties-common
-add-apt-repository -y ppa:jjriek/rockchip
-add-apt-repository -y ppa:liujianfeng1994/panfork-mesa
 add-apt-repository -y ppa:liujianfeng1994/rockchip-multimedia
 
 # Download and update installed packages
@@ -102,7 +98,7 @@ p7zip-full htop iotop pciutils lshw lsof landscape-common exfat-fuse hwinfo \
 net-tools wireless-tools openssh-client openssh-server ifupdown sudo bzip2 \
 pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
 gcc libc6-dev bison libssl-dev flex usbutils fake-hwclock rfkill \
-fdisk linux-firmware iperf3 dialog mmc-utils rockchip-firmware
+fdisk linux-firmware iperf3 dialog mmc-utils
 
 
 # Clean package cache
@@ -219,13 +215,13 @@ chroot ${chroot_dir} /bin/bash -c "systemctl enable resize-filesystem"
 mkdir -p ${chroot_dir}/lib/systemd/system/serial-getty@.service.d
 cp ${overlay_dir}/usr/lib/systemd/system/serial-getty@.service.d/10-term.conf ${chroot_dir}/usr/lib/systemd/system/serial-getty@.service.d/10-term.conf
 
-# cp ../packages/mesa/g52-mesa_*.deb ${chroot_dir}/root
+cp ../packages/mesa/g52-mesa_*.deb ${chroot_dir}/root
 
-# cat << EOF | chroot ${chroot_dir} /bin/bash
+cat << EOF | chroot ${chroot_dir} /bin/bash
 
-# # dpkg -i /root/g52-mesa_*.deb
+dpkg -i /root/g52-mesa_*.deb
 
-# EOF
+EOF
 
 cat << EOF | chroot ${chroot_dir} /bin/bash
 set -eE 
@@ -234,7 +230,7 @@ trap 'echo Error: in $0 on line $LINENO' ERR
 # Desktop packages
 apt-get -y install ubuntu-desktop dbus-x11 xterm pulseaudio pavucontrol qtwayland5 \
 gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-plugins-good mpv \
-gstreamer1.0-tools gstreamer1.0-rockchip1 chromium-browser mali-g610-firmware malirun \
+gstreamer1.0-tools gstreamer1.0-rockchip1 chromium-browser \
 rockchip-multimedia-config librist4 librist-dev rist-tools dvb-tools ir-keytable \
 libdvbv5-0 libdvbv5-dev libdvbv5-doc libv4l-0 libv4l2rds0 libv4lconvert0 libv4l-dev \
 libv4l-rkmpp qv4l2 v4l-utils librockchip-mpp1 librockchip-mpp-dev librockchip-vpu0 \
