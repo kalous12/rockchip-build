@@ -11,8 +11,6 @@ fi
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p build && cd build
 
-VENDOR=lubancat-rk3568
-
 if [[ -z ${VENDOR} ]]; then
     echo "Error: VENDOR is not set"
     exit 1

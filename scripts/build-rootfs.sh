@@ -232,6 +232,64 @@ cp ${overlay_dir}/usr/data/* ${chroot_dir}/usr/data/
 # make media run in user
 cp ${overlay_dir}/etc/udev/rules.d/99-rockchip-permissions.rules ${chroot_dir}/etc/udev/rules.d/
 
+cp ${overlay_dir}/usr/lib/firmware/mali_csffw.bin ${chroot_dir}/usr/lib/firmware
+
+cat << EOF | chroot ${chroot_dir} /bin/bash
+  apt-get -y install libsrt-openssl-dev libssh-dev
+EOF
+
+if [ "$BOARD_SOC" == "rk3588" ];then
+
+mkdir -p ${chroot_dir}/package/gpu
+
+cp ../packages/gpu/rk3588/* ${chroot_dir}/package/gpu
+
+cat << EOF | chroot ${chroot_dir} /bin/bash
+apt-get -y install \
+libc6 libexpat1 libgcc-s1 libllvm14 libsensors5 libstdc++6 \
+libdrm-dev libdrm2 zlib1g libudev1 libxshmfence1 \
+libxcb1 libx11-xcb1 libxcb-dri2-0 libxcb-dri3-0 \
+libxcb-present0 libxcb-randr0 libxcb-sync1 libxcb-xfixes0 \
+libwayland-dev libwayland-bin libgles2 libgles-dev \
+wayland-protocols libwayland-egl-backend-dev \
+libx11-6 libxcb-glx0 libxcb-shm0 libxext6 libxxf86vm1 \
+libwayland-egl1 libx11-dev libglx-dev libgl-dev \
+libclc-14 ocl-icd-libopencl1 \
+libvdpau1 libvulkan1 libegl-dev libglvnd-dev
+
+cd /package/gpu
+
+dpkg -i \
+mali-g610-firmware_1.0.2_all.deb \
+libosmesa6_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libd3dadapter9-mesa_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libegl1-mesa_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libegl1-mesa-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libgl1-mesa-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libglapi-mesa_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libgles2-mesa_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libgles2-mesa-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libgbm1_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+mesa-common-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+mesa-opencl-icd_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+mesa-va-drivers_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+mesa-vdpau-drivers_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+mesa-vulkan-drivers_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb 
+
+dpkg -i \
+libosmesa6-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libd3dadapter9-mesa-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libgl1-mesa-dri_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libegl-mesa0_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libgbm-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
+libglx-mesa0_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb 
+
+dpkg -i libgl1-mesa-glx_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb
+
+EOF
+
+fi
+
 # Download and update packages
 cat << EOF | chroot ${chroot_dir} /bin/bash
 set -eE 
@@ -240,10 +298,10 @@ trap 'echo Error: in $0 on line $LINENO' ERR
 # Download and update installed packages
 apt-get -y update && apt-get -y upgrade
 
-apt install gnome mpv chromium mesa-utils wayland-protocols libsrt-openssl-dev libssh-dev
+apt-get -y install gnome mpv chromium mesa-utils wayland-protocols 
 
 # install gstream
-apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+apt-get -y install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
 libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
 gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
 gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl \

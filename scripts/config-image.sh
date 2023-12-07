@@ -11,9 +11,6 @@ fi
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p build && cd build
 
-BOARD=lubancat2
-VENDOR=lubancat-rk3568
-
 if [[ -z ${BOARD} ]]; then
     echo "Error: BOARD is not set"
     exit 1

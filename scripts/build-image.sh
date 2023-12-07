@@ -50,8 +50,6 @@ fi
 
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p images build && cd build
-BOARD=lubancat2
-VENDOR=lubancat-rk3568
 
 if [[ -z ${BOARD} ]]; then
     echo "Error: BOARD is not set"
@@ -61,11 +59,6 @@ fi
 if [[ -z ${VENDOR} ]]; then
     echo "Error: VENDOR is not set"
     exit 1
-fi
-
-if [[ "${BOARD}" == lubancat2 ]]; then
-    DEVICE_TREE=rk3568-lubancat-2.dtb
-    OVERLAY_PREFIX=
 fi
 
 img="../images/$(basename "${rootfs}" .rootfs.tar).img"
@@ -192,7 +185,7 @@ UUID=${root_uuid,,} /              ext4    defaults    0       1
 EOF
 
 # Copy u-boot fireware to loader_dir
-cp -rfp ${rootfs_dir}/usr/lib/u-boot-"${VENDOR}"/* "${loader_dir}"
+cp -rfp ${rootfs_dir}/usr/lib/u-boot/* "${loader_dir}"
 
 # tar czf rootfs.tar.gz ${rootfs_dir}
 
