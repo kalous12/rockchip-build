@@ -175,6 +175,9 @@ cp ${rootfs_dir}/boot/vmlinuz-5.10.160* ${boot_dir}
 
 # Copy device trees to boot partition
 mv ${rootfs_dir}/boot/core/* ${boot_dir}
+if [ -f "${boot_dir}/dtb/${DEVICE_TREE}" ];then
+    cp ${boot_dir}/dtb/${DEVICE_TREE} ${boot_dir}/rk-kernel.dtb
+fi
 
 # Create fstab entries
 boot_uuid_fstab="${boot_uuid:0:4}-${boot_uuid:4:4}"

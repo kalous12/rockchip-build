@@ -85,7 +85,6 @@ overlay_dir=../overlay
     # Copy device trees and overlays
     mkdir -p ${chroot_dir}/boot/core/dtbs/overlays
     cp ${chroot_dir}/usr/lib/linux-image-*/rockchip/*.dtb ${chroot_dir}/boot/core/dtbs
-    cp ${chroot_dir}/usr/lib/linux-image-*/rockchip/rk3568-lubancat-2.dtb ${chroot_dir}/boot/core/rk-kernel.dtb
     # cp ${chroot_dir}/usr/lib/linux-image-5.10.160/rockchip/overlay/*.dtbo ${chroot_dir}/boot/core/dtbs/overlays
 
     echo "Install the bootloader"
