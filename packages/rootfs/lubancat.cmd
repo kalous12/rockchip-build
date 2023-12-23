@@ -56,9 +56,9 @@ elif test "${board}" = "evb_rk3568" ;then
 
     elif test "${adc_index_2}" = "2" && test "${adc_index_3}" = "0" ;then
         echo "board name is lubancat0n"
-        echo "device tree is rk3566-lubancat-0.dtb"
+        echo "device tree is rk3566-lubancat-0n.dtb"
         setenv board_name "lubancat-0n"
-        setenv board_dtb "rk3566-lubancat-0.dtb"
+        setenv board_dtb "rk3566-lubancat-0n.dtb"
 
     elif test "${adc_index_2}" = "2" && test "${adc_index_3}" = "1" ;then
         echo "board name is lubancat1h"
@@ -68,9 +68,9 @@ elif test "${board}" = "evb_rk3568" ;then
 
     elif test "${adc_index_2}" = "3" && test "${adc_index_3}" = "0" ;then
         echo "board name is lubancat0w"
-        echo "device tree is rk3566-lubancat-0.dtb"
+        echo "device tree is rk3566-lubancat-0w.dtb"
         setenv board_name "lubancat-0w"
-        setenv board_dtb "rk3566-lubancat-0.dtb"
+        setenv board_dtb "rk3566-lubancat-0w.dtb"
 
     elif test "${adc_index_2}" = "4" && test "${adc_index_3}" = "0" ;then
         echo "board name is lubancat2"

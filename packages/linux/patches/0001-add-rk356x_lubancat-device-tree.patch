@@ -1,24 +1,24 @@
-From 1c7aa5aba2bcc2693d1bb450e8b28d62ab3d2f9e Mon Sep 17 00:00:00 2001
+From 66d98fd36bb809e73ab55be14a23f7e8005d5e01 Mon Sep 17 00:00:00 2001
 From: kalous12 <2797795537@qq.com>
-Date: Sat, 23 Dec 2023 02:25:13 +0000
-Subject: [PATCH] update add rk356x_lubancat device tree
+Date: Sat, 23 Dec 2023 08:01:16 +0000
+Subject: [PATCH] add rk356x_lubancat device tree
 
 ---
  arch/arm64/boot/dts/rockchip/Makefile         |   12 +
- .../boot/dts/rockchip/rk3566-lubancat-0n.dts  |  799 +++++++++++++
- .../boot/dts/rockchip/rk3566-lubancat-0w.dts  |  817 +++++++++++++
- .../boot/dts/rockchip/rk3566-lubancat-1.dts   |  875 ++++++++++++++
- .../boot/dts/rockchip/rk3566-lubancat-1h.dts  |  962 +++++++++++++++
- .../boot/dts/rockchip/rk3566-lubancat-1io.dts |  941 +++++++++++++++
- .../boot/dts/rockchip/rk3566-lubancat-1n.dts  |  872 ++++++++++++++
- .../dts/rockchip/rk3568-lubancat-2-v1.dts     |  956 +++++++++++++++
- .../dts/rockchip/rk3568-lubancat-2-v2.dts     |  956 +++++++++++++++
- .../boot/dts/rockchip/rk3568-lubancat-2.dts   |  956 +++++++++++++++
- .../boot/dts/rockchip/rk3568-lubancat-2h.dts  | 1040 +++++++++++++++++
- .../boot/dts/rockchip/rk3568-lubancat-2io.dts | 1014 ++++++++++++++++
- .../boot/dts/rockchip/rk3568-lubancat-2n.dts  | 1021 ++++++++++++++++
+ .../boot/dts/rockchip/rk3566-lubancat-0n.dts  |  788 +++++++++++++
+ .../boot/dts/rockchip/rk3566-lubancat-0w.dts  |  806 +++++++++++++
+ .../boot/dts/rockchip/rk3566-lubancat-1.dts   |  861 ++++++++++++++
+ .../boot/dts/rockchip/rk3566-lubancat-1h.dts  |  937 +++++++++++++++
+ .../boot/dts/rockchip/rk3566-lubancat-1io.dts |  916 +++++++++++++++
+ .../boot/dts/rockchip/rk3566-lubancat-1n.dts  |  847 ++++++++++++++
+ .../dts/rockchip/rk3568-lubancat-2-v1.dts     |  930 +++++++++++++++
+ .../dts/rockchip/rk3568-lubancat-2-v2.dts     |  930 +++++++++++++++
+ .../boot/dts/rockchip/rk3568-lubancat-2.dts   |  945 +++++++++++++++
+ .../boot/dts/rockchip/rk3568-lubancat-2h.dts  | 1028 +++++++++++++++++
+ .../boot/dts/rockchip/rk3568-lubancat-2io.dts |  988 ++++++++++++++++
+ .../boot/dts/rockchip/rk3568-lubancat-2n.dts  | 1001 ++++++++++++++++
  .../boot/dts/rockchip/rk3568-lubancat.dtsi    |  746 ++++++++++++
- 14 files changed, 11967 insertions(+)
+ 14 files changed, 11735 insertions(+)
  create mode 100644 arch/arm64/boot/dts/rockchip/rk3566-lubancat-0n.dts
  create mode 100644 arch/arm64/boot/dts/rockchip/rk3566-lubancat-0w.dts
  create mode 100644 arch/arm64/boot/dts/rockchip/rk3566-lubancat-1.dts
@@ -57,10 +57,10 @@ index 37fb6d717..0bea5b97c 100644
  subdir-y := $(dts-dirs) overlay
 diff --git a/arch/arm64/boot/dts/rockchip/rk3566-lubancat-0n.dts b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-0n.dts
 new file mode 100644
-index 000000000..4f85e4562
+index 000000000..db4ada3ab
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-0n.dts
-@@ -0,0 +1,799 @@
+@@ -0,0 +1,788 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -259,17 +259,6 @@ index 000000000..4f85e4562
 +&route_hdmi {
 +	status = "okay";
 +	connect = <&vp0_out_hdmi>;
-+};
-+
-+&pwm3 {
-+	status = "okay";
-+
-+	compatible = "rockchip,remotectl-pwm";
-+	remote_pwm_id = <3>;
-+	handle_cpu_id = <1>;
-+	remote_support_psci = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pwm3_pins>;
 +};
 +
 +&i2c0 {
@@ -776,10 +765,10 @@ index 000000000..4f85e4562
 +	snps,reset-gpio = <&gpio2 RK_PB0 GPIO_ACTIVE_LOW>;
 +	snps,reset-active-low;
 +	/* Reset time is 20ms, 100ms for rtl8211f */
-+	snps,reset-delays-us = <0 20000 100000>;
++	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
-+	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -862,10 +851,10 @@ index 000000000..4f85e4562
 +};
 diff --git a/arch/arm64/boot/dts/rockchip/rk3566-lubancat-0w.dts b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-0w.dts
 new file mode 100644
-index 000000000..0ce645f22
+index 000000000..82fcfa22f
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-0w.dts
-@@ -0,0 +1,817 @@
+@@ -0,0 +1,806 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -1078,17 +1067,6 @@ index 000000000..0ce645f22
 +	connect = <&vp0_out_hdmi>;
 +};
 +
-+&pwm3 {
-+	status = "okay";
-+
-+	compatible = "rockchip,remotectl-pwm";
-+	remote_pwm_id = <3>;
-+	handle_cpu_id = <1>;
-+	remote_support_psci = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pwm3_pins>;
-+};
-+
 +&i2c0 {
 +	status = "okay";
 +
@@ -1593,10 +1571,10 @@ index 000000000..0ce645f22
 +	snps,reset-gpio = <&gpio2 RK_PB0 GPIO_ACTIVE_LOW>;
 +	snps,reset-active-low;
 +	/* Reset time is 20ms, 100ms for rtl8211f */
-+	snps,reset-delays-us = <0 20000 100000>;
++	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
-+	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -1685,10 +1663,10 @@ index 000000000..0ce645f22
 +};
 diff --git a/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1.dts b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1.dts
 new file mode 100644
-index 000000000..78f11dc5a
+index 000000000..7c66235bd
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1.dts
-@@ -0,0 +1,875 @@
+@@ -0,0 +1,861 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -2438,10 +2416,10 @@ index 000000000..78f11dc5a
 +	snps,reset-gpio = <&gpio2 RK_PB0 GPIO_ACTIVE_LOW>;
 +	snps,reset-active-low;
 +	/* Reset time is 20ms, 100ms for rtl8211f */
-+	snps,reset-delays-us = <0 20000 100000>;
++	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
-+	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -2474,20 +2452,6 @@ index 000000000..78f11dc5a
 +	disable-gpios = <&gpio0 RK_PA6 GPIO_ACTIVE_HIGH>;
 +	vpcie3v3-supply = <&pcie2_3v3>;
 +	status = "okay";
-+};
-+
-+&rkisp {
-+	status = "okay";
-+};
-+
-+&rkisp_mmu {
-+	status = "okay";
-+};
-+
-+&uart1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart1m0_xfer &uart1m0_ctsn>;
 +};
 +
 +&reserved_memory {
@@ -2566,10 +2530,10 @@ index 000000000..78f11dc5a
 +};
 diff --git a/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1h.dts b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1h.dts
 new file mode 100644
-index 000000000..759ca69a4
+index 000000000..0a680fe5e
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1h.dts
-@@ -0,0 +1,962 @@
+@@ -0,0 +1,937 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -2870,17 +2834,6 @@ index 000000000..759ca69a4
 +&route_hdmi {
 +	status = "okay";
 +	connect = <&vp0_out_hdmi>;
-+};
-+
-+&pwm3 {
-+	status = "okay";
-+
-+	compatible = "rockchip,remotectl-pwm";
-+	remote_pwm_id = <3>;
-+	handle_cpu_id = <1>;
-+	remote_support_psci = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pwm3_pins>;
 +};
 +
 +&i2c0 {
@@ -3395,10 +3348,10 @@ index 000000000..759ca69a4
 +	snps,reset-gpio = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>;
 +	snps,reset-active-low;
 +	/* Reset time is 20ms, 100ms for rtl8211f */
-+	snps,reset-delays-us = <0 20000 100000>;
++	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
-+	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -3430,20 +3383,6 @@ index 000000000..759ca69a4
 +	reset-gpios = <&gpio0 RK_PB6 GPIO_ACTIVE_HIGH>;
 +	disable-gpios = <&gpio0 RK_PA6 GPIO_ACTIVE_HIGH>;
 +	status = "okay";
-+};
-+
-+&rkisp {
-+	status = "okay";
-+};
-+
-+&rkisp_mmu {
-+	status = "okay";
-+};
-+
-+&uart1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart1m0_xfer &uart1m0_ctsn>;
 +};
 +
 +&reserved_memory {
@@ -3528,16 +3467,16 @@ index 000000000..759ca69a4
 +	};
 +};
 +
-+&vp0 {
-+	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER0 | 1 << ROCKCHIP_VOP2_ESMART0)>;
-+	rockchip,primary-plane = <ROCKCHIP_VOP2_ESMART0>;
-+};
++// &vp0 {
++// 	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER0 | 1 << ROCKCHIP_VOP2_ESMART0)>;
++// 	rockchip,primary-plane = <ROCKCHIP_VOP2_ESMART0>;
++// };
 diff --git a/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1io.dts b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1io.dts
 new file mode 100644
-index 000000000..a1fe213b3
+index 000000000..2a7d26293
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1io.dts
-@@ -0,0 +1,941 @@
+@@ -0,0 +1,916 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -3815,17 +3754,6 @@ index 000000000..a1fe213b3
 +&route_hdmi {
 +	status = "okay";
 +	connect = <&vp0_out_hdmi>;
-+};
-+
-+&pwm3 {
-+	status = "okay";
-+
-+	compatible = "rockchip,remotectl-pwm";
-+	remote_pwm_id = <3>;
-+	handle_cpu_id = <1>;
-+	remote_support_psci = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pwm3_pins>;
 +};
 +
 +&i2c0 {
@@ -4328,10 +4256,10 @@ index 000000000..a1fe213b3
 +	snps,reset-gpio = <&gpio4 RK_PC2 GPIO_ACTIVE_LOW>;
 +	snps,reset-active-low;
 +	/* Reset time is 20ms, 100ms for rtl8211f */
-+	snps,reset-delays-us = <0 20000 100000>;
++	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
-+	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -4364,20 +4292,6 @@ index 000000000..a1fe213b3
 +	disable-gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_HIGH>;
 +	vpcie3v3-supply = <&pcie2_3v3>;
 +	status = "okay";
-+};
-+
-+&rkisp {
-+	status = "okay";
-+};
-+
-+&rkisp_mmu {
-+	status = "okay";
-+};
-+
-+&uart1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart1m0_xfer &uart1m0_ctsn>;
 +};
 +
 +&reserved_memory {
@@ -4481,10 +4395,10 @@ index 000000000..a1fe213b3
 +};
 diff --git a/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1n.dts b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1n.dts
 new file mode 100644
-index 000000000..c509225ea
+index 000000000..3deba263d
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1n.dts
-@@ -0,0 +1,872 @@
+@@ -0,0 +1,847 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -4720,17 +4634,6 @@ index 000000000..c509225ea
 +&route_hdmi {
 +	status = "okay";
 +	connect = <&vp0_out_hdmi>;
-+};
-+
-+&pwm3 {
-+	status = "okay";
-+
-+	compatible = "rockchip,remotectl-pwm";
-+	remote_pwm_id = <3>;
-+	handle_cpu_id = <1>;
-+	remote_support_psci = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pwm3_pins>;
 +};
 +
 +&i2c0 {
@@ -5233,10 +5136,10 @@ index 000000000..c509225ea
 +	snps,reset-gpio = <&gpio2 RK_PB2 GPIO_ACTIVE_LOW>;
 +	snps,reset-active-low;
 +	/* Reset time is 20ms, 100ms for rtl8211f */
-+	snps,reset-delays-us = <0 20000 100000>;
++	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
-+	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -5267,20 +5170,6 @@ index 000000000..c509225ea
 +&pcie2x1 {
 +	vpcie3v3-supply = <&pcie_3v3>;
 +	status = "okay";
-+};
-+
-+&rkisp {
-+	status = "okay";
-+};
-+
-+&rkisp_mmu {
-+	status = "okay";
-+};
-+
-+&uart1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart1m0_xfer &uart1m0_ctsn>;
 +};
 +
 +&reserved_memory {
@@ -5359,10 +5248,10 @@ index 000000000..c509225ea
 +};
 diff --git a/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2-v1.dts b/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2-v1.dts
 new file mode 100644
-index 000000000..445970de9
+index 000000000..150fe62ac
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2-v1.dts
-@@ -0,0 +1,956 @@
+@@ -0,0 +1,930 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -5623,18 +5512,6 @@ index 000000000..445970de9
 +	connect = <&vp0_out_hdmi>;
 +};
 +
-+&pwm3 {
-+	status = "okay";
-+
-+	compatible = "rockchip,remotectl-pwm";
-+	interrupts = <GIC_SPI 82 IRQ_TYPE_LEVEL_HIGH>;
-+	remote_pwm_id = <3>;
-+	handle_cpu_id = <1>;
-+	remote_support_psci = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pwm3_pins>;
-+};
-+
 +&i2c0 {
 +	status = "okay";
 +
@@ -6149,7 +6026,7 @@ index 000000000..445970de9
 +	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC0_RX_TX>, <&cru SCLK_GMAC0>;
-+	assigned-clock-parents = <&cru SCLK_GMAC0_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -6180,10 +6057,10 @@ index 000000000..445970de9
 +	snps,reset-gpio = <&gpio3 RK_PA2 GPIO_ACTIVE_LOW>;
 +	snps,reset-active-low;
 +	/* Reset time is 20ms, 100ms for rtl8211f */
-+	snps,reset-delays-us = <0 20000 100000>;
++	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
-+	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -6226,20 +6103,6 @@ index 000000000..445970de9
 +	disable-gpios = <&gpio3 RK_PC2 GPIO_ACTIVE_HIGH>;
 +	vpcie3v3-supply = <&mini_pcie_3v3>;
 +	status = "okay";
-+};
-+
-+&rkisp {
-+	status = "okay";
-+};
-+
-+&rkisp_mmu {
-+	status = "okay";
-+};
-+
-+&uart1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart1m0_xfer &uart1m0_ctsn>;
 +};
 +
 +&reserved_memory {
@@ -6321,10 +6184,10 @@ index 000000000..445970de9
 +};
 diff --git a/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2-v2.dts b/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2-v2.dts
 new file mode 100644
-index 000000000..a301a815c
+index 000000000..c32c58280
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2-v2.dts
-@@ -0,0 +1,956 @@
+@@ -0,0 +1,930 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -6583,18 +6446,6 @@ index 000000000..a301a815c
 +&route_hdmi {
 +	status = "okay";
 +	connect = <&vp0_out_hdmi>;
-+};
-+
-+&pwm3 {
-+	status = "okay";
-+
-+	compatible = "rockchip,remotectl-pwm";
-+	interrupts = <GIC_SPI 82 IRQ_TYPE_LEVEL_HIGH>;
-+	remote_pwm_id = <3>;
-+	handle_cpu_id = <1>;
-+	remote_support_psci = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pwm3_pins>;
 +};
 +
 +&i2c0 {
@@ -7111,15 +6962,15 @@ index 000000000..a301a815c
 +	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC0_RX_TX>, <&cru SCLK_GMAC0>;
-+	assigned-clock-parents = <&cru SCLK_GMAC0_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&gmac0_miim
-+			 &gmac0_tx_bus2
-+			 &gmac0_rx_bus2
-+			 &gmac0_rgmii_clk
-+			 &gmac0_rgmii_bus>;
++		     &gmac0_tx_bus2
++		     &gmac0_rx_bus2
++		     &gmac0_rgmii_clk
++		     &gmac0_rgmii_bus>;
 +
 +	tx_delay = <0x23>;
 +	rx_delay = <0x07>;
@@ -7142,10 +6993,10 @@ index 000000000..a301a815c
 +	snps,reset-gpio = <&gpio3 RK_PA2 GPIO_ACTIVE_LOW>;
 +	snps,reset-active-low;
 +	/* Reset time is 20ms, 100ms for rtl8211f */
-+	snps,reset-delays-us = <0 20000 100000>;
++	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
-+	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -7188,20 +7039,6 @@ index 000000000..a301a815c
 +	disable-gpios = <&gpio3 RK_PC2 GPIO_ACTIVE_HIGH>;
 +	vpcie3v3-supply = <&mini_pcie_3v3>;
 +	status = "okay";
-+};
-+
-+&rkisp {
-+	status = "okay";
-+};
-+
-+&rkisp_mmu {
-+	status = "okay";
-+};
-+
-+&uart1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart1m0_xfer &uart1m0_ctsn>;
 +};
 +
 +&reserved_memory {
@@ -7283,10 +7120,10 @@ index 000000000..a301a815c
 +};
 diff --git a/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2.dts b/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2.dts
 new file mode 100644
-index 000000000..e50ea4050
+index 000000000..22dd3bc46
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2.dts
-@@ -0,0 +1,956 @@
+@@ -0,0 +1,945 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -7336,6 +7173,12 @@ index 000000000..e50ea4050
 +		io-channel-names = "buttons";
 +		keyup-threshold-microvolt = <1800000>;
 +		poll-interval = <100>;
++
++		restart-key {
++			label = "restart";
++			linux,code = <KEY_RESTART>;
++			press-threshold-microvolt = <9>;
++		};
 +	};
 +
 +	hdmi_sound: hdmi-sound {
@@ -7427,6 +7270,7 @@ index 000000000..e50ea4050
 +		pinctrl-0 = <&vcc5v0_usb20_host_en>;
 +		regulator-name = "vcc5v0_usb20_host";
 +		regulator-always-on;
++		regulator-boot-on;
 +	};
 +
 +	vcc5v0_usb30_host: vcc5v0-usb30-host-regulator {
@@ -7437,6 +7281,7 @@ index 000000000..e50ea4050
 +		pinctrl-0 = <&vcc5v0_usb30_host_en>;
 +		regulator-name = "vcc5v0_usb30_host";
 +		regulator-always-on;
++		regulator-boot-on;
 +	};
 +
 +	vcc5v0_otg_vbus: vcc5v0-otg-vbus-regulator {
@@ -7448,6 +7293,7 @@ index 000000000..e50ea4050
 +		pinctrl-names = "default";
 +		pinctrl-0 = <&vcc5v0_otg_vbus_en>;
 +		regulator-name = "vcc5v0_otg_vbus";
++		regulator-always-on;
 +	};
 +
 +	mini_pcie_3v3: mini-pcie-3v3-regulator {
@@ -7545,18 +7391,6 @@ index 000000000..e50ea4050
 +&route_hdmi {
 +	status = "okay";
 +	connect = <&vp0_out_hdmi>;
-+};
-+
-+&pwm7 {
-+	status = "okay";
-+
-+	compatible = "rockchip,remotectl-pwm";
-+	interrupts = <GIC_SPI 82 IRQ_TYPE_LEVEL_HIGH>;
-+	remote_pwm_id = <3>;
-+	handle_cpu_id = <1>;
-+	remote_support_psci = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pwm7_pins>;
 +};
 +
 +&i2c0 {
@@ -8036,6 +7870,9 @@ index 000000000..e50ea4050
 +	status = "okay";
 +};
 +
++&xpcs {
++	status="disabled";
++};
 +
 +&vdpu {
 +	status = "okay";
@@ -8073,7 +7910,7 @@ index 000000000..e50ea4050
 +	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC0_RX_TX>, <&cru SCLK_GMAC0>;
-+	assigned-clock-parents = <&cru SCLK_GMAC0_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC0_RGMII_SPEED>, <&cru CLK_MAC0_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -8104,10 +7941,10 @@ index 000000000..e50ea4050
 +	snps,reset-gpio = <&gpio3 RK_PA2 GPIO_ACTIVE_LOW>;
 +	snps,reset-active-low;
 +	/* Reset time is 20ms, 100ms for rtl8211f */
-+	snps,reset-delays-us = <0 20000 100000>;
++	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
-+	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -8117,8 +7954,8 @@ index 000000000..e50ea4050
 +		     &gmac1m1_rgmii_clk
 +		     &gmac1m1_rgmii_bus>;
 +
-+	tx_delay = <0x42>;
-+	rx_delay = <0x28>;
++	tx_delay = <0x22>;
++	rx_delay = <0x07>;
 +
 +	phy-handle = <&rgmii_phy1>;
 +	status = "okay";
@@ -8138,6 +7975,8 @@ index 000000000..e50ea4050
 +&pcie3x2 {
 +	reset-gpios = <&gpio2 RK_PD6 GPIO_ACTIVE_HIGH>;
 +	vpcie3v3-supply = <&pcie30_3v3>;
++	//num-lanes = <2>;
++	pinctrl-0 = <&pcie30x2m1_pins>; 
 +	status = "okay";
 +};
 +
@@ -8149,21 +7988,8 @@ index 000000000..e50ea4050
 +	reset-gpios = <&gpio3 RK_PC1 GPIO_ACTIVE_HIGH>;
 +	disable-gpios = <&gpio3 RK_PC2 GPIO_ACTIVE_HIGH>;
 +	vpcie3v3-supply = <&mini_pcie_3v3>;
++	pinctrl-0 = <&pcie20m1_pins>; 
 +	status = "okay";
-+};
-+
-+&rkisp {
-+	status = "okay";
-+};
-+
-+&rkisp_mmu {
-+	status = "okay";
-+};
-+
-+&uart1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart1m0_xfer &uart1m0_ctsn>;
 +};
 +
 +&reserved_memory {
@@ -8245,10 +8071,10 @@ index 000000000..e50ea4050
 +};
 diff --git a/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2h.dts b/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2h.dts
 new file mode 100644
-index 000000000..42456715a
+index 000000000..25fc9e56b
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2h.dts
-@@ -0,0 +1,1040 @@
+@@ -0,0 +1,1028 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -8605,18 +8431,6 @@ index 000000000..42456715a
 +&route_hdmi {
 +	status = "okay";
 +	connect = <&vp0_out_hdmi>;
-+};
-+
-+&pwm3 {
-+	status = "okay";
-+
-+	compatible = "rockchip,remotectl-pwm";
-+	remote_pwm_id = <3>;
-+	handle_cpu_id = <1>;
-+	remote_support_psci = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pwm3_pins>;
-+
 +};
 +
 +&i2c0 {
@@ -9134,10 +8948,10 @@ index 000000000..42456715a
 +	snps,reset-gpio = <&gpio4 RK_PC0 GPIO_ACTIVE_LOW>;
 +	snps,reset-active-low;
 +	/* Reset time is 20ms, 100ms for rtl8211f */
-+	snps,reset-delays-us = <0 20000 100000>;
++	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
-+	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -9291,10 +9105,10 @@ index 000000000..42456715a
 +};
 diff --git a/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2io.dts b/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2io.dts
 new file mode 100644
-index 000000000..2c82b0df8
+index 000000000..27d7f0181
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2io.dts
-@@ -0,0 +1,1014 @@
+@@ -0,0 +1,988 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -9586,18 +9400,6 @@ index 000000000..2c82b0df8
 +&route_hdmi {
 +	status = "okay";
 +	connect = <&vp0_out_hdmi>;
-+};
-+
-+&pwm3 {
-+	status = "okay";
-+
-+	compatible = "rockchip,remotectl-pwm";
-+	interrupts = <GIC_SPI 82 IRQ_TYPE_LEVEL_HIGH>;
-+	remote_pwm_id = <3>;
-+	handle_cpu_id = <1>;
-+	remote_support_psci = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pwm3_pins>;
 +};
 +
 +&i2c0 {
@@ -10122,7 +9924,7 @@ index 000000000..2c82b0df8
 +	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC0_RX_TX>, <&cru SCLK_GMAC0>;
-+	assigned-clock-parents = <&cru SCLK_GMAC0_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -10153,10 +9955,10 @@ index 000000000..2c82b0df8
 +	snps,reset-gpio = <&gpio0 RK_PC7 GPIO_ACTIVE_LOW>;
 +	snps,reset-active-low;
 +	/* Reset time is 20ms, 100ms for rtl8211f */
-+	snps,reset-delays-us = <0 20000 100000>;
++	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
-+	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -10199,20 +10001,6 @@ index 000000000..2c82b0df8
 +	disable-gpios = <&gpio3 RK_PC2 GPIO_ACTIVE_HIGH>;
 +	vpcie3v3-supply = <&minipcie_3v3>;
 +	status = "okay";
-+};
-+
-+&rkisp {
-+	status = "okay";
-+};
-+
-+&rkisp_mmu {
-+	status = "okay";
-+};
-+
-+&uart1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart1m0_xfer &uart1m0_ctsn>;
 +};
 +
 +&reserved_memory {
@@ -10311,10 +10099,10 @@ index 000000000..2c82b0df8
 +};
 diff --git a/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2n.dts b/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2n.dts
 new file mode 100644
-index 000000000..dce0d7925
+index 000000000..adcb6961b
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3568-lubancat-2n.dts
-@@ -0,0 +1,1021 @@
+@@ -0,0 +1,1001 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -10600,18 +10388,6 @@ index 000000000..dce0d7925
 +&route_hdmi {
 +	status = "okay";
 +	connect = <&vp0_out_hdmi>;
-+};
-+
-+&pwm3 {
-+	status = "okay";
-+
-+	compatible = "rockchip,remotectl-pwm";
-+	remote_pwm_id = <3>;
-+	handle_cpu_id = <1>;
-+	remote_support_psci = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pwm3_pins>;
-+
 +};
 +
 +&i2c0 {
@@ -11128,7 +10904,7 @@ index 000000000..dce0d7925
 +	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC0_RX_TX>, <&cru SCLK_GMAC0>;
-+	assigned-clock-parents = <&cru SCLK_GMAC0_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -11159,10 +10935,10 @@ index 000000000..dce0d7925
 +	snps,reset-gpio = <&gpio3 RK_PA2 GPIO_ACTIVE_LOW>;
 +	snps,reset-active-low;
 +	/* Reset time is 20ms, 100ms for rtl8211f */
-+	snps,reset-delays-us = <0 20000 100000>;
++	snps,reset-delays-us = <0 75000 100000>;
 +
 +	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
-+	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
 +	assigned-clock-rates = <0>, <125000000>;
 +
 +	pinctrl-names = "default";
@@ -11238,14 +11014,6 @@ index 000000000..dce0d7925
 +	reset-gpios = <&gpio3 RK_PC1 GPIO_ACTIVE_HIGH>;
 +	disable-gpios = <&gpio3 RK_PC2 GPIO_ACTIVE_HIGH>;
 +	vpcie3v3-supply = <&mini_pcie_3v3>;
-+	status = "okay";
-+};
-+
-+&rkisp {
-+	status = "okay";
-+};
-+
-+&rkisp_mmu {
 +	status = "okay";
 +};
 +
