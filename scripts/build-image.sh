@@ -110,10 +110,10 @@ tar -xpf "${rootfs}" -C ${rootfs_dir}
 # [ -z "${img##*desktop*}" ] && bootargs="quiet splash plymouth.ignore-serial-consoles" || bootargs=""
 
 # Uboot script
-cp ../package/rootfs/boot.cmd ${boot_dir}/
+cp ../packages/rootfs/boot.cmd ${boot_dir}/
 mkimage -A arm64 -O linux -T script -C none -n "Boot Script" -d ${boot_dir}/boot.cmd ${boot_dir}/boot.scr
 
-cp ../package/rootfs/lubancat.cmd ${boot_dir}/
+cp ../packages/rootfs/lubancat.cmd ${boot_dir}/
 mkimage -A arm64 -O linux -T script -C none -n "Boot Script" -d ${boot_dir}/lubancat.cmd ${boot_dir}/lubancat.scr
 
 # Uboot env
@@ -131,8 +131,8 @@ cp ${rootfs_dir}/boot/vmlinuz-5.10.160* ${boot_dir}
 
 # Copy device trees to boot partition
 mv ${rootfs_dir}/boot/core/* ${boot_dir}
-if [ -f "${boot_dir}/dtb/${DEVICE_TREE}" ];then
-    cp ${boot_dir}/dtb/${DEVICE_TREE} ${boot_dir}/rk-kernel.dtb
+if [ -f "${boot_dir}/dtb/${K_DEVICE_TREE}" ];then
+    cp ${boot_dir}/dtb/${K_DEVICE_TREE} ${boot_dir}/rk-kernel.dtb
 fi
 
 # Create fstab entries

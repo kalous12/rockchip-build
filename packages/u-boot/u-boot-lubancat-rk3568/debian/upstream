@@ -1,4 +1,4 @@
 GIT=https://github.com/kalous12/u-boot-rockchip.git
-COMMIT=8195825bb54be14974f9a7dd69c743d07d82df76
+COMMIT=a3c053af46b1c62bac12826df23ce2498095126a
 BRANCH=next-dev
 VERSION=2017.09+20231009.git8195825
