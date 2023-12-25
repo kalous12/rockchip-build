@@ -48,8 +48,6 @@ export DEBIAN_FRONTEND=noninteractive
 chroot_dir=rootfs
 overlay_dir=../overlay
 
-    type=server
-
     echo "build server img"
     # Clean chroot dir and make sure folder is not mounted
     umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true
@@ -57,7 +55,7 @@ overlay_dir=../overlay
     rm -rf ${chroot_dir}
     mkdir -p ${chroot_dir}
 
-    tar -xpJf debian12-${type}-arm64.rootfs.tar.xz -C ${chroot_dir}
+    tar -xpJf debian12-${ROOTFS_TYPE}-arm64.rootfs.tar.xz -C ${chroot_dir}
 
     echo "Mount the temporary API filesystems"
     # Mount the temporary API filesystems
@@ -111,8 +109,8 @@ overlay_dir=../overlay
 
     echo "Tar the entire rootfs"
     # Tar the entire rootfs
-    cd ${chroot_dir} && tar -cpf ../debian12-${type}-arm64-"${BOARD}".rootfs.tar . && cd ..
+    cd ${chroot_dir} && tar -cpf ../debian12-${ROOTFS_TYPE}-arm64-"${BOARD}".rootfs.tar . && cd ..
     rm -r ${chroot_dir}
-    ../scripts/build-image.sh debian12-${type}-arm64-"${BOARD}".rootfs.tar
-    rm -f debian12-${type}-arm64-"${BOARD}".rootfs.tar
+    ../scripts/build-image.sh debian12-${ROOTFS_TYPE}-arm64-"${BOARD}".rootfs.tar
+    rm -f debian12-${ROOTFS_TYPE}-arm64-"${BOARD}".rootfs.tar
 

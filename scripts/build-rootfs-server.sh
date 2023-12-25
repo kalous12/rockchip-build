@@ -11,7 +11,7 @@ fi
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p build && cd build
 
-if [[ -f debian12-server-arm64.rootfs.tar.xz ]]; then
+if [[ -f debian12-${ROOTFS_TYPE}-arm64.rootfs.tar.xz ]]; then
     exit 0
 fi
 
@@ -95,7 +95,7 @@ p7zip-full htop iotop pciutils lshw lsof exfat-fuse hwinfo \
 net-tools wireless-tools openssh-client openssh-server ifupdown sudo bzip2 \
 pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
 gcc libc6-dev bison libssl-dev flex usbutils fake-hwclock rfkill \
-fdisk iperf3 dialog mmc-utils ntp rsyslog neofetch gdebi
+fdisk iperf3 dialog mmc-utils ntp rsyslog neofetch gdebi alsa-utils pulseaudio\
 
 
 # Clean package cache
@@ -289,28 +289,6 @@ dpkg -i libgl1-mesa-glx_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.d
 EOF
 
 fi
-
-# Download and update packages
-cat << EOF | chroot ${chroot_dir} /bin/bash
-set -eE 
-trap 'echo Error: in $0 on line $LINENO' ERR
-
-# Download and update installed packages
-apt-get -y update && apt-get -y upgrade
-
-apt-get -y install gnome mpv chromium mesa-utils wayland-protocols 
-
-# install gstream
-apt-get -y install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
-libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl \
-gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio gstreamer1.0-plugins-base-apps
-
-# Clean package cache
-apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
-
-EOF
 
 # Umount temporary API filesystems
 umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true
