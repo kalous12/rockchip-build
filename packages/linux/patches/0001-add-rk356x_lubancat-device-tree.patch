@@ -1,13 +1,13 @@
-From 66d98fd36bb809e73ab55be14a23f7e8005d5e01 Mon Sep 17 00:00:00 2001
+From 49bfc499a1271c4de40c0fa7e03b894bb304efc6 Mon Sep 17 00:00:00 2001
 From: kalous12 <2797795537@qq.com>
-Date: Sat, 23 Dec 2023 08:01:16 +0000
+Date: Tue, 26 Dec 2023 01:04:58 +0000
 Subject: [PATCH] add rk356x_lubancat device tree
 
 ---
  arch/arm64/boot/dts/rockchip/Makefile         |   12 +
  .../boot/dts/rockchip/rk3566-lubancat-0n.dts  |  788 +++++++++++++
  .../boot/dts/rockchip/rk3566-lubancat-0w.dts  |  806 +++++++++++++
- .../boot/dts/rockchip/rk3566-lubancat-1.dts   |  861 ++++++++++++++
+ .../boot/dts/rockchip/rk3566-lubancat-1.dts   |  850 ++++++++++++++
  .../boot/dts/rockchip/rk3566-lubancat-1h.dts  |  937 +++++++++++++++
  .../boot/dts/rockchip/rk3566-lubancat-1io.dts |  916 +++++++++++++++
  .../boot/dts/rockchip/rk3566-lubancat-1n.dts  |  847 ++++++++++++++
@@ -18,7 +18,7 @@ Subject: [PATCH] add rk356x_lubancat device tree
  .../boot/dts/rockchip/rk3568-lubancat-2io.dts |  988 ++++++++++++++++
  .../boot/dts/rockchip/rk3568-lubancat-2n.dts  | 1001 ++++++++++++++++
  .../boot/dts/rockchip/rk3568-lubancat.dtsi    |  746 ++++++++++++
- 14 files changed, 11735 insertions(+)
+ 14 files changed, 11724 insertions(+)
  create mode 100644 arch/arm64/boot/dts/rockchip/rk3566-lubancat-0n.dts
  create mode 100644 arch/arm64/boot/dts/rockchip/rk3566-lubancat-0w.dts
  create mode 100644 arch/arm64/boot/dts/rockchip/rk3566-lubancat-1.dts
@@ -1663,10 +1663,10 @@ index 000000000..82fcfa22f
 +};
 diff --git a/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1.dts b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1.dts
 new file mode 100644
-index 000000000..7c66235bd
+index 000000000..1de229dba
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3566-lubancat-1.dts
-@@ -0,0 +1,861 @@
+@@ -0,0 +1,850 @@
 +/dts-v1/;
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/pwm/pwm.h>
@@ -1903,17 +1903,6 @@ index 000000000..7c66235bd
 +&route_hdmi {
 +	status = "okay";
 +	connect = <&vp0_out_hdmi>;
-+};
-+
-+&pwm3 {
-+	status = "okay";
-+
-+	compatible = "rockchip,remotectl-pwm";
-+	remote_pwm_id = <3>;
-+	handle_cpu_id = <1>;
-+	remote_support_psci = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pwm3_pins>;
 +};
 +
 +&i2c0 {
