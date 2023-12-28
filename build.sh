@@ -117,7 +117,7 @@ export VENDOR=$UBOOT_SYSTEM
 export BOARD=$BOARD_NAME
 export BOARD_SOC=$BOARD_SOC
 
-export DEVICE_TREE=$K_DEVICE_TREE
+export K_DEVICE_TREE=$DEVICE_TREE
 export OVERLAY_PREFIX=$OVERLAY_PREFIX
 export ROOTFS_TYPE=$ROOTFS_TYPE
 
@@ -143,7 +143,7 @@ if [ -d "images" ]; then
     rm -r images
 fi
 
-if [ ${ROOTFS_TYPE} = "server" ];then
+if [ "${ROOTFS_TYPE}" = "server" ];then
 ./scripts/build-rootfs-server.sh
 else
 ./scripts/build-rootfs-desktop.sh

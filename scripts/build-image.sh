@@ -120,7 +120,7 @@ mkimage -A arm64 -O linux -T script -C none -n "Boot Script" -d ${boot_dir}/luba
 cat > ${boot_dir}/uEnv.txt << EOF
 uname_r=5.10.160-rockchip
 bootargs=root=UUID=${root_uuid} rootfstype=ext4 rootwait rw console=ttyS2,1500000 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=0
-fdtfile=${DEVICE_TREE}
+fdtfile=${K_DEVICE_TREE}
 overlay_prefix=${OVERLAY_PREFIX}
 overlays=
 EOF
@@ -131,8 +131,8 @@ cp ${rootfs_dir}/boot/vmlinuz-5.10.160* ${boot_dir}
 
 # Copy device trees to boot partition
 mv ${rootfs_dir}/boot/core/* ${boot_dir}
-if [ -f "${boot_dir}/dtb/${K_DEVICE_TREE}" ];then
-    cp ${boot_dir}/dtb/${K_DEVICE_TREE} ${boot_dir}/rk-kernel.dtb
+if [ -f "${boot_dir}/dtbs/${K_DEVICE_TREE}" ];then
+    cp ${boot_dir}/dtbs/${K_DEVICE_TREE} ${boot_dir}/rk-kernel.dtb
 fi
 
 # Create fstab entries

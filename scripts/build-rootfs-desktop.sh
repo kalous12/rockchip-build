@@ -8,16 +8,19 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-if [[ -f debian12-${ROOTFS_TYPE}-arm64.rootfs.tar.xz ]]; then
+cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
+mkdir -p build && cd build
+
+if [[ -f debian12-desktop-arm64.rootfs.tar.xz ]]; then
     exit 0
 fi
 
-if [[ ! -f debian12-server-arm64.rootfs.tar.xz ]]; then
-    ./scripts/build-rootfs-server.sh
+if [[ -f debian12-server-arm64.rootfs.tar.xz ]]; then
+    echo "skip build server img"
+else
+    echo "no server img --> rebuild"
+    ../scripts/build-rootfs-server.sh
 fi
-
-cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
-mkdir -p build && cd build
 
 # These env vars can cause issues with chroot
 unset TMP
@@ -29,6 +32,14 @@ export DEBIAN_FRONTEND=noninteractive
 
 chroot_dir=rootfs
 overlay_dir=../overlay
+
+if [ -d ${chroot_dir} ]; then
+    rm -r ${chroot_dir}
+fi
+
+mkdir -p ${chroot_dir}
+
+tar -xpJf debian12-server-arm64.rootfs.tar.xz -C ${chroot_dir}
 
 mkdir -p ${chroot_dir}/{proc,sys,run,dev,dev/pts}
 mount -t proc /proc ${chroot_dir}/proc
