@@ -39,15 +39,15 @@ rm -rf ${chroot_dir}
 # Install the base system into a directory 
 # debootstrap --arch ${arch} ${release} ${chroot_dir} ${mirror}
 
-if [[ ! -f debian12-base-${version}-base-${arch}.tar.gz ]];then
+if [[ ! -f debian12-base-rootfs-${arch}.tar.gz ]];then
   mkdir -p ${chroot_dir}
   debootstrap --arch ${arch} ${release} ${chroot_dir} ${mirror}
-	tar -czf debian12-base-${version}-base-${arch}.tar.gz -C ${chroot_dir} .
+	tar -czf debian12-base-rootfs-${arch}.tar.gz -C ${chroot_dir} .
   rm -r ${chroot_dir}
 fi
 
 mkdir -p ${chroot_dir}
-tar -xzf debian12-base-${version}-base-${arch}.tar.gz -C ${chroot_dir}
+tar -xzf debian12-base-rootfs-${arch}.tar.gz -C ${chroot_dir}
 cp -b /etc/resolv.conf ${chroot_dir}/etc/resolv.conf
 
 # Default adduser config
@@ -82,10 +82,15 @@ trap 'echo Error: in $0 on line $LINENO' ERR
 # Download and update installed packages
 apt-get -y update && apt-get -y upgrade
 
-# apt-get -y install locales
+apt-get -y install locales
 
 # # Update localisation files
-# locale-gen en_US.UTF-8
+sed -i 's/^# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+sed -i 's/^# zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/' /etc/locale.gen
+locale-gen
+echo "LANG=zh_CN.UTF-8" >> /etc/default/locale
+echo "LC_MESSAGES=zh_CN.UTF-8" >> /etc/default/locale
+update-locale
 
 # Download and install generic packages
 apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools inetutils-ping \
@@ -171,9 +176,12 @@ cp ${overlay_dir}/etc/resolv.conf ${chroot_dir}/etc/resolv.conf
 
 # Networking interfaces
 cp ${overlay_dir}/etc/NetworkManager/NetworkManager.conf ${chroot_dir}/etc/NetworkManager/NetworkManager.conf
-cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf ${chroot_dir}/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf
-cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf ${chroot_dir}/usr/lib/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf
-cp ${overlay_dir}/usr/lib/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf ${chroot_dir}/usr/lib/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf
+cp ${overlay_dir}/etc/NetworkManager/conf.d/10-globally-managed-devices.conf ${chroot_dir}/etc/NetworkManager/conf.d/10-globally-managed-devices.conf
+cp ${overlay_dir}/etc/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf ${chroot_dir}/etc/NetworkManager/conf.d/10-override-wifi-random-mac-disable.conf
+cp ${overlay_dir}/etc/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf ${chroot_dir}/etc/NetworkManager/conf.d/20-override-wifi-powersave-disable.conf
+
+# help to fix wifi
+cp ${overlay_dir}/etc/udev/rules.d/80-net-setup-link.rules ${chroot_dir}/etc/udev/rules.d/
 
 # Expand root filesystem on first boot
 mkdir -p ${chroot_dir}/usr/lib/scripts
@@ -184,10 +192,6 @@ chroot ${chroot_dir} /bin/bash -c "systemctl enable resize-filesystem"
 # Set cpu governor to performance
 cp ${overlay_dir}/usr/lib/systemd/system/cpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/cpu-governor-performance.service
 chroot ${chroot_dir} /bin/bash -c "systemctl enable cpu-governor-performance"
-
-# Set gpu governor to performance
-cp ${overlay_dir}/usr/lib/systemd/system/gpu-governor-performance.service ${chroot_dir}/usr/lib/systemd/system/gpu-governor-performance.service
-chroot ${chroot_dir} /bin/bash -c "systemctl enable gpu-governor-performance"
 
 # Set term for serial tty
 mkdir -p ${chroot_dir}/lib/systemd/system/serial-getty@.service.d
@@ -211,7 +215,8 @@ trap 'echo Error: in $0 on line $LINENO' ERR
 apt-get -y install libavcodec-dev libavfilter-dev libavutil-dev \
 libswresample-dev ffmpeg libavdevice59 libavformat59 libpostproc56 \
 libswscale6 ffmpeg-doc libavdevice-dev libavformat-dev libpostproc-dev \
-libswscale-dev libavcodec59 libavfilter8 libavutil57 libswresample4
+libswscale-dev libavcodec59 libavfilter8 libavutil57 libswresample4 \
+libsrt-openssl-dev libssh-dev pulseaudio alsa-tools alsa-utils
 
 EOF
 
@@ -231,64 +236,6 @@ cp ${overlay_dir}/usr/data/* ${chroot_dir}/usr/data/
 
 # make media run in user
 cp ${overlay_dir}/etc/udev/rules.d/99-rockchip-permissions.rules ${chroot_dir}/etc/udev/rules.d/
-
-cp ${overlay_dir}/usr/lib/firmware/mali_csffw.bin ${chroot_dir}/usr/lib/firmware
-
-cat << EOF | chroot ${chroot_dir} /bin/bash
-  apt-get -y install libsrt-openssl-dev libssh-dev
-EOF
-
-if [ "$BOARD_SOC" == "rk3588" ];then
-
-mkdir -p ${chroot_dir}/package/gpu
-
-cp ../packages/gpu/rk3588/* ${chroot_dir}/package/gpu
-
-cat << EOF | chroot ${chroot_dir} /bin/bash
-apt-get -y install \
-libc6 libexpat1 libgcc-s1 libllvm14 libsensors5 libstdc++6 \
-libdrm-dev libdrm2 zlib1g libudev1 libxshmfence1 \
-libxcb1 libx11-xcb1 libxcb-dri2-0 libxcb-dri3-0 \
-libxcb-present0 libxcb-randr0 libxcb-sync1 libxcb-xfixes0 \
-libwayland-dev libwayland-bin libgles2 libgles-dev \
-wayland-protocols libwayland-egl-backend-dev \
-libx11-6 libxcb-glx0 libxcb-shm0 libxext6 libxxf86vm1 \
-libwayland-egl1 libx11-dev libglx-dev libgl-dev \
-libclc-14 ocl-icd-libopencl1 \
-libvdpau1 libvulkan1 libegl-dev libglvnd-dev
-
-cd /package/gpu
-
-dpkg -i \
-mali-g610-firmware_1.0.2_all.deb \
-libosmesa6_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libd3dadapter9-mesa_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libegl1-mesa_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libegl1-mesa-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libgl1-mesa-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libglapi-mesa_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libgles2-mesa_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libgles2-mesa-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libgbm1_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-mesa-common-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-mesa-opencl-icd_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-mesa-va-drivers_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-mesa-vdpau-drivers_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-mesa-vulkan-drivers_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb 
-
-dpkg -i \
-libosmesa6-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libd3dadapter9-mesa-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libgl1-mesa-dri_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libegl-mesa0_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libgbm-dev_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb \
-libglx-mesa0_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb 
-
-dpkg -i libgl1-mesa-glx_23.0.5-0ubuntu1~panfork~git221210.120202c6757~j3_arm64.deb
-
-EOF
-
-fi
 
 # Umount temporary API filesystems
 umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true

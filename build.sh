@@ -120,6 +120,8 @@ export BOARD_SOC=$BOARD_SOC
 export K_DEVICE_TREE=$DEVICE_TREE
 export OVERLAY_PREFIX=$OVERLAY_PREFIX
 export ROOTFS_TYPE=$ROOTFS_TYPE
+export ROOTFS_SCRIPT=$ROOTFS_SCRIPT
+export OVERLAY_ROOTFS=$OVERLAY_ROOTFS
 
 if [ $(ls build | grep "u-boot-${VENDOR}"| grep deb) ];then 
     echo "skip build uboot"
@@ -143,10 +145,13 @@ if [ -d "images" ]; then
     rm -r images
 fi
 
-if [ "${ROOTFS_TYPE}" = "server" ];then
-./scripts/build-rootfs-server.sh
+# build base filesystem
+
+if [ -f "./scripts/build-rootfs-${ROOTFS_TYPE}.sh" ];then
+    ./scripts/build-rootfs-${ROOTFS_TYPE}.sh
 else
-./scripts/build-rootfs-desktop.sh
+    echo "please choose your filesystem : desktop or server"
+    exit 1
 fi
 
 ./scripts/config-image.sh

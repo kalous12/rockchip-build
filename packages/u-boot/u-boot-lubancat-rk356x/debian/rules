@@ -17,7 +17,7 @@ DDR_BLOB := rk3568_ddr_1560MHz_v1.18.bin
 BL31_BLOB := rk3568_bl31_v1.43.elf
 BL32_BLOB := rk3568_bl32_v2.10.bin
 
-BOARDS := lubancat-rk3568
+BOARDS := lubancat-rk356x
 
 ${BOARDS}: 
 	@mkdir -p debian/build/$@
@@ -31,7 +31,7 @@ ${BOARDS}:
 	@touch .scmversion
 	@sed -i 's/CONFIG_BOOTDELAY=.*/CONFIG_BOOTDELAY=1/g' debian/build/$@/.config
 	@sed -i 's/CONFIG_DISABLE_CONSOLE=y/CONFIG_DISABLE_CONSOLE=n/g' debian/build/$@/.config
-	@sed -i 's/CONFIG_LOCALVERSION=""/CONFIG_LOCALVERSION="-lubancat-rk3568"/g' debian/build/$@/.config
+	@sed -i 's/CONFIG_LOCALVERSION=""/CONFIG_LOCALVERSION="-lubancat-rk356x"/g' debian/build/$@/.config
 
 	@mkdir -p debian/build/$@/arch/arm/mach-rockchip
 	@cp arch/arm/mach-rockchip/decode_bl31.py debian/build/$@/arch/arm/mach-rockchip/decode_bl31.py
@@ -82,7 +82,7 @@ package-%:
 	@gzip -9 "debian/tmp/u-boot/usr/share/doc/u-boot/changelog.Debian"
 	@sh -c "cd 'debian/tmp/u-boot'; find . -type f ! -path './DEBIAN/*' -printf '%P\0' | xargs -r0 md5sum > DEBIAN/md5sums"
 	@chown -R root:root "debian/tmp/u-boot" && chmod -R go-w "debian/tmp/u-boot" && chmod -R a+rX "debian/tmp/u-boot"
-	@dpkg-gencontrol -pu-boot-lubancat-rk3568 -P"debian/tmp/u-boot"
+	@dpkg-gencontrol -pu-boot-lubancat-rk356x -P"debian/tmp/u-boot"
 	@dpkg --build "debian/tmp/u-boot" ..
 
 clean:

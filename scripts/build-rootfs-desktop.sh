@@ -52,7 +52,7 @@ cat << EOF | chroot ${chroot_dir} /bin/bash
 set -eE 
 trap 'echo Error: in $0 on line $LINENO' ERR
 
-apt-get -y install gnome mpv chromium mesa-utils wayland-protocols 
+apt-get -y install gnome mpv chromium mesa-utils wayland-protocols
 
 # install gstream
 apt-get -y install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
@@ -69,6 +69,9 @@ cat << EOF | chroot ${chroot_dir} /bin/bash
 apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
 
 EOF
+
+# Adjust hostname for desktop
+echo "localhost.localdomain" > ${chroot_dir}/etc/hostname
 
 # Umount temporary API filesystems
 umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true
