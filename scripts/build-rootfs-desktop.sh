@@ -11,11 +11,12 @@ fi
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p build && cd build
 
-if [[ -f debian12-desktop-arm64.rootfs.tar.xz ]]; then
+if [ -f "debian12-desktop-arm64.rootfs.tar.gz" ]; then
+    echo "no need to rebuild"
     exit 0
 fi
 
-if [[ -f debian12-server-arm64.rootfs.tar.xz ]]; then
+if [ -f "debian12-server-arm64.rootfs.tar.gz" ]; then
     echo "skip build server img"
 else
     echo "no server img --> rebuild"
@@ -39,7 +40,7 @@ fi
 
 mkdir -p ${chroot_dir}
 
-tar -xpJf debian12-server-arm64.rootfs.tar.xz -C ${chroot_dir}
+tar -I pigz -xf debian12-server-arm64.rootfs.tar.gz -C ${chroot_dir}
 
 mkdir -p ${chroot_dir}/{proc,sys,run,dev,dev/pts}
 mount -t proc /proc ${chroot_dir}/proc
@@ -70,11 +71,21 @@ apt-get -y autoremove && apt-get -y clean && apt-get -y autoclean
 
 EOF
 
-# Adjust hostname for desktop
-echo "localhost.localdomain" > ${chroot_dir}/etc/hostname
+
+cp ${overlay_dir}/gnome-setting/user ${chroot_dir}/home/cat/
+
+cat << EOF | chroot ${chroot_dir} /bin/bash
+# copy dconf to control power setting
+su cat
+mkdir -p /home/cat/.config/dconf/
+mv /home/cat/user /home/cat/.config/dconf/
+EOF
+
+mkdir -p ${chroot_dir}/etc/chromium
+cp ${overlay_dir}/etc/chromium/default ${chroot_dir}/etc/chromium
 
 # Umount temporary API filesystems
 umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true
 umount -lf ${chroot_dir}/* 2> /dev/null || true
 
-cd ${chroot_dir} && XZ_OPT="-3 -T0" tar -cpJf ../debian12-desktop-arm64.rootfs.tar.xz . && cd ..
+cd ${chroot_dir} && tar -I pigz -cf ../debian12-desktop-arm64.rootfs.tar.gz . && cd ..

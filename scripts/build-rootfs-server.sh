@@ -11,7 +11,7 @@ fi
 cd "$(dirname -- "$(readlink -f -- "$0")")" && cd ..
 mkdir -p build && cd build
 
-if [[ -f debian12-${ROOTFS_TYPE}-arm64.rootfs.tar.xz ]]; then
+if [[ -f debian12-${ROOTFS_TYPE}-arm64.rootfs.tar.gz ]]; then
     exit 0
 fi
 
@@ -42,12 +42,12 @@ rm -rf ${chroot_dir}
 if [[ ! -f debian12-base-rootfs-${arch}.tar.gz ]];then
   mkdir -p ${chroot_dir}
   debootstrap --arch ${arch} ${release} ${chroot_dir} ${mirror}
-	tar -czf debian12-base-rootfs-${arch}.tar.gz -C ${chroot_dir} .
+	tar -I pigz -cf debian12-base-rootfs-${arch}.tar.gz -C ${chroot_dir} .
   rm -r ${chroot_dir}
 fi
 
 mkdir -p ${chroot_dir}
-tar -xzf debian12-base-rootfs-${arch}.tar.gz -C ${chroot_dir}
+tar -I pigz -xf debian12-base-rootfs-${arch}.tar.gz -C ${chroot_dir}
 cp -b /etc/resolv.conf ${chroot_dir}/etc/resolv.conf
 
 # Default adduser config
@@ -88,15 +88,14 @@ apt-get -y install locales
 sed -i 's/^# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
 sed -i 's/^# zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/' /etc/locale.gen
 locale-gen
-echo "LANG=zh_CN.UTF-8" >> /etc/default/locale
-echo "LC_MESSAGES=zh_CN.UTF-8" >> /etc/default/locale
+echo "LANG=en_US.UTF-8" >> /etc/default/locale
 update-locale
 
 # Download and install generic packages
 apt-get -y install dmidecode mtd-tools i2c-tools u-boot-tools inetutils-ping \
 bash-completion man-db manpages nano gnupg initramfs-tools vim \
 dosfstools mtools parted ntfs-3g zip atop network-manager netplan.io file \
-p7zip-full htop iotop pciutils lshw lsof exfat-fuse hwinfo \
+p7zip-full htop iotop pciutils lshw lsof exfat-fuse hwinfo firmware-realtek \
 net-tools wireless-tools openssh-client openssh-server ifupdown sudo bzip2 \
 pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
 gcc libc6-dev bison libssl-dev flex usbutils fake-hwclock rfkill \
@@ -119,6 +118,8 @@ EOF
 # mv /tmp/swapfile /swapfile
 # EOF
 
+# setting hostname
+cp ${overlay_dir}/etc/hostname ${chroot_dir}/etc/hostname
 
 # add user
 cat << EOF | chroot ${chroot_dir} /bin/bash
@@ -144,7 +145,7 @@ IEOF
 sed -i '/pam_securetty.so/s/^/# /g' /etc/pam.d/login
 
 # hostname
-echo lubancat > /etc/hostname
+echo "lubancat" > /etc/hostname
 
 sed -i 's/#LogLevel=info/LogLevel=warning/' \
   /etc/systemd/system.conf
@@ -242,4 +243,4 @@ umount -lf ${chroot_dir}/dev/pts 2> /dev/null || true
 umount -lf ${chroot_dir}/* 2> /dev/null || true
 
 # Tar the entire rootfs
-cd ${chroot_dir} && XZ_OPT="-3 -T0" tar -cpJf ../debian12-server-arm64.rootfs.tar.xz . && cd ..
+cd ${chroot_dir} && tar -I pigz -cf ../debian12-server-arm64.rootfs.tar.gz . && cd ..

@@ -55,7 +55,7 @@ umount -lf ${chroot_dir}/* 2> /dev/null || true
 rm -rf ${chroot_dir}
 mkdir -p ${chroot_dir}
 
-tar -xpJf debian12-${ROOTFS_TYPE}-arm64.rootfs.tar.xz -C ${chroot_dir}
+tar -I pigz -xf debian12-${ROOTFS_TYPE}-arm64.rootfs.tar.gz -C ${chroot_dir}
 
 echo "Mount the temporary API filesystems"
 # Mount the temporary API filesystems
@@ -114,8 +114,8 @@ umount -lf ${chroot_dir}/* 2> /dev/null || true
 
 echo "Tar the entire rootfs"
 # Tar the entire rootfs
-cd ${chroot_dir} && tar -cpf ../debian12-${ROOTFS_TYPE}-arm64-"${BOARD}".rootfs.tar . && cd ..
+cd ${chroot_dir} && tar -I pigz -cf ../debian12-${ROOTFS_TYPE}-arm64-"${BOARD}".rootfs.tar.gz . && cd ..
 rm -r ${chroot_dir}
-../scripts/build-image.sh debian12-${ROOTFS_TYPE}-arm64-"${BOARD}".rootfs.tar
-rm -f debian12-${ROOTFS_TYPE}-arm64-"${BOARD}".rootfs.tar
+../scripts/build-image.sh debian12-${ROOTFS_TYPE}-arm64-"${BOARD}".rootfs.tar.gz
+rm -f debian12-${ROOTFS_TYPE}-arm64-"${BOARD}".rootfs.tar.gz
 

@@ -146,8 +146,9 @@ if [ -d "images" ]; then
 fi
 
 # build base filesystem
-
+echo ROOTFS_TYPE=$ROOTFS_TYPE
 if [ -f "./scripts/build-rootfs-${ROOTFS_TYPE}.sh" ];then
+    echo ./scripts/build-rootfs-${ROOTFS_TYPE}.sh
     ./scripts/build-rootfs-${ROOTFS_TYPE}.sh
 else
     echo "please choose your filesystem : desktop or server"

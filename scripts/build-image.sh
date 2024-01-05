@@ -38,12 +38,12 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 if [ -z "$1" ]; then
-    echo "Usage: $0 filename.rootfs.tar"
+    echo "Usage: $0 filename.rootfs.tar.gz"
     exit 1
 fi
 
 rootfs="$(readlink -f "$1")"
-if [[ "$(basename "${rootfs}")" != *".rootfs.tar" || ! -e "${rootfs}" ]]; then
+if [[ "$(basename "${rootfs}")" != *".rootfs.tar.gz" || ! -e "${rootfs}" ]]; then
     echo "Error: $(basename "${rootfs}") must be a rootfs tarfile"
     exit 1
 fi
@@ -61,7 +61,7 @@ if [[ -z ${VENDOR} ]]; then
     exit 1
 fi
 
-img="../images/$(basename "${rootfs}" .rootfs.tar).img"
+img="../images/$(basename "${rootfs}" .rootfs.tar.gz).img"
 
 overlay_dir=../overlay
 
@@ -104,7 +104,7 @@ rootfs_dir=${mount_point}/writable
 boot_dir=${mount_point}/system-boot
 
 # Copy the rootfs to rootfs partition
-tar -xpf "${rootfs}" -C ${rootfs_dir}
+tar -I pigz -xf "${rootfs}" -C ${rootfs_dir}
 
 # Set boot args for the splash screen
 # [ -z "${img##*desktop*}" ] && bootargs="quiet splash plymouth.ignore-serial-consoles" || bootargs=""
