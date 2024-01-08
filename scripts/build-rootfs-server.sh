@@ -98,7 +98,7 @@ dosfstools mtools parted ntfs-3g zip atop network-manager netplan.io file \
 p7zip-full htop iotop pciutils lshw lsof exfat-fuse hwinfo firmware-realtek \
 net-tools wireless-tools openssh-client openssh-server ifupdown sudo bzip2 \
 pigz wget curl lm-sensors gdisk usb-modeswitch usb-modeswitch-data make \
-gcc libc6-dev bison libssl-dev flex usbutils fake-hwclock rfkill \
+gcc libc6-dev bison libssl-dev flex usbutils fake-hwclock rfkill firmware-iwlwifi \
 fdisk iperf3 dialog mmc-utils ntp rsyslog neofetch gdebi alsa-utils pulseaudio\
 
 
@@ -203,6 +203,9 @@ cp ${overlay_dir}/usr/lib/systemd/system/serial-getty@.service ${chroot_dir}/usr
 
 # Use gzip compression for the initrd
 cp ${overlay_dir}/etc/initramfs-tools/conf.d/compression.conf ${chroot_dir}/etc/initramfs-tools/conf.d/compression.conf
+
+# suitable for ax210
+rm ${chroot_dir}/usr/lib/firmware/iwlwifi-ty-a0-gf-a0.pnvm
 
 # Do not create bak files for flash-kernel
 echo "NO_CREATE_DOT_BAK_FILES=true" >> ${chroot_dir}/etc/environment
