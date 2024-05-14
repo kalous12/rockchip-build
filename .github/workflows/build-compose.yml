@@ -1,0 +1,39 @@
+name: build-compose
+run-name: build on github
+on:
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      board:
+        description: target board
+        required: true
+        type: choice
+        options:
+        - "lubancat2"
+
+env:
+  TZ: Asia/Shanghai
+  
+jobs:
+
+  Build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 1440
+    steps:
+      
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build
+      run: |
+        echo "${{ inputs.board }}"
+        sudo apt update
+        sudo apt upgrade
+        sudo apt-get install -y build-essential gcc-aarch64-linux-gnu bison \
+        qemu-user-static qemu-system-arm qemu-efi u-boot-tools binfmt-support \
+        debootstrap flex libssl-dev bc rsync kmod cpio xz-utils fakeroot parted \
+        udev dosfstools uuid-runtime git-lfs device-tree-compiler python2 python3 \
+        python-is-python3 fdisk bc debhelper pip swig python3-pyelftools
+        git clone https://github.com/kalous12/rockchip-build.git
+        cd rockchip-build
+        sudo ./build.sh -b ${{ inputs.board }}

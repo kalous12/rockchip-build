@@ -1,0 +1,25 @@
+From f548dba9703d59db20e459de5f59c3e2dbec7c29 Mon Sep 17 00:00:00 2001
+From: kalous12 <2797795537@qq.com>
+Date: Tue, 10 Oct 2023 02:25:19 +0000
+Subject: [PATCH] fix rk3568 kernel can not open npu
+
+---
+ configs/rk3568_defconfig | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/configs/rk3568_defconfig b/configs/rk3568_defconfig
+index d157307..3e3da23 100644
+--- a/configs/rk3568_defconfig
++++ b/configs/rk3568_defconfig
+@@ -6,6 +6,8 @@ CONFIG_SYS_MALLOC_F_LEN=0x80000
+ CONFIG_SPL_FIT_GENERATOR="arch/arm/mach-rockchip/make_fit_atf.sh"
+ CONFIG_ROCKCHIP_RK3568=y
+ CONFIG_ROCKCHIP_FIT_IMAGE=y
++CONFIG_ROCKCHIP_EARLY_DISTRO_DTB=y
++CONFIG_ROCKCHIP_EARLY_DISTRO_DTB_PATH="rk-kernel.dtb"
+ CONFIG_ROCKCHIP_VENDOR_PARTITION=y
+ CONFIG_DM_DMC=y
+ CONFIG_ROCKCHIP_DMC_FSP=y
+-- 
+2.25.1
+

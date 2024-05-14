@@ -1,0 +1,100 @@
+name: auto-build
+run-name: build on github
+on:
+  push:
+    paths:
+      - 'VERSION'
+
+env:
+  REPO_URL: https://github.com/kalous12/rockchip-build.git
+  REPO_BRANCH: main
+  BOARD: lubancat2
+  TZ: Asia/Shanghai
+
+jobs:
+
+  Build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 1440
+    steps:
+      
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Show system
+      run: |
+        echo -e "Total CPU cores\t: $(nproc)"
+        cat /proc/cpuinfo | grep 'model name'
+        free -h
+        uname -a
+        [ -f /proc/version ] && cat /proc/version
+        [ -f /etc/issue.net ] && cat /etc/issue.net
+        [ -f /etc/issue ] && cat /etc/issue
+        ulimit -a    
+
+    - name: install dependency
+      run: |
+        sudo apt update
+        sudo apt upgrade
+        sudo apt-get install -y build-essential gcc-aarch64-linux-gnu bison \
+        qemu-user-static qemu-system-arm qemu-efi u-boot-tools binfmt-support \
+        debootstrap flex libssl-dev bc rsync kmod cpio xz-utils fakeroot parted \
+        udev dosfstools uuid-runtime git-lfs device-tree-compiler python2 python3 \
+        python-is-python3 fdisk bc debhelper pip swig python3-pyelftools tree \
+        pkg-config genext2fs libconfuse-dev 
+
+        cd ..
+        git clone https://github.com/pengutronix/genimage.git
+        cd genimage
+        ./autogen.sh
+        ./configure CFLAGS='-g -O0' --prefix=/usr
+        make install 
+        which genimage
+
+    - name: complie
+      run: |
+        cd rockchip-build
+        echo "now you are in ${PWD}"
+        tree
+        sudo ./build.sh -b $BOARD
+        echo "FIRMWARE=${PWD}/images" >> $GITHUB_ENV
+      
+    - name: Generate release
+      id: tag
+      run: |
+          echo "release_tag=$(cat VERSION)" >> $GITHUB_OUTPUT
+          echo "release_date=$(date +"%Y.%m.%d")" >> $GITHUB_OUTPUT
+          touch release.txt
+          echo "欢迎各位小伙伴使用镜像，如果有问题可以及时反应" >> release.txt
+        
+    - name: Upload firmware to release
+      uses: softprops/action-gh-release@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          name: ${{ steps.tag.outputs.release_date }} 镜像下载
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          body_path: release.txt
+          files: ${{ env.FIRMWARE }}/*
+
+    - name: Delete workflow runs
+      uses: Mattraks/delete-workflow-runs@v2
+      with:
+          retain_days: 1
+          keep_minimum_runs: 1
+
+    - name: Remove old Releases
+      uses: dev-drprasad/delete-older-releases@v0.2.1
+      with:
+          keep_latest: 20
+          delete_tags: true
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Delete Artifacts
+      uses: geekyeggo/delete-artifact@v2
+      with:
+         name: |
+            bin-archive
+        
+       
