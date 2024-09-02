@@ -41,7 +41,7 @@ rm -rf ${chroot_dir}
 
 if [[ ! -f debian12-base-rootfs-${arch}.tar.gz ]];then
   mkdir -p ${chroot_dir}
-  debootstrap --arch ${arch} ${release} ${chroot_dir} ${mirror}
+  debootstrap --arch ${arch} ${release} ${chroot_dir} 
 	tar -I pigz -cf debian12-base-rootfs-${arch}.tar.gz -C ${chroot_dir} .
   rm -r ${chroot_dir}
 fi

@@ -133,7 +133,7 @@ mv ${boot_img} ${loader_dir}
 mv ${rootfs_img} ${loader_dir}
 
 genimage --inputpath ${loader_dir} --outputpath ../images --config ../conf/image/genimage.cfg
-rm -r tmp
+# rm -r tmp
 mv ../images/sdcard.img ${img}
 
 # Exit trap is no longer needed

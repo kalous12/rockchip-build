@@ -100,7 +100,12 @@ apt-get -y install libavcodec-dev libavfilter-dev libavutil-dev \
 libswresample-dev ffmpeg libavdevice59 libavformat59 libpostproc56 \
 libswscale6 ffmpeg-doc libavdevice-dev libavformat-dev libpostproc-dev \
 libswscale-dev libavcodec59 libavfilter8 libavutil57 libswresample4 \
-libsrt-openssl-dev libssh-dev pulseaudio alsa-tools alsa-utils
+libsrt-openssl-dev libssh-dev gnome
+
+apt-get -y remove aisleriot gnome-2048 gnome-chess gnome-klotski \
+gnome-mahjongg gnome-mines gnome-nibbles gnome-robots gnome-sudoku \
+gnome-sudoku hitori iagno lightsoff quadrapassel swell-foop \
+five-or-more  four-in-a-row tali
 
 EOF
 
@@ -123,7 +128,7 @@ cat << EOF | chroot ${chroot_dir} /bin/bash
 set -eE 
 trap 'echo Error: in $0 on line $LINENO' ERR
 
-apt-get -y install gnome mpv chromium mesa-utils wayland-protocols
+apt-get -y install mpv chromium mesa-utils wayland-protocols
 
 # install gstream
 apt-get -y install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
