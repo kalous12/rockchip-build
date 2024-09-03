@@ -1,5 +1,5 @@
-function build_rootfs_hook__build_rk356x_auspice() {
-    echo "rk356x auspice build"
+function build_rootfs_hook__build_rk356x_lubanbit() {
+    echo "rk356x lubanbit build"
 
 cat << EOF | chroot ${chroot_dir} /bin/bash
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF

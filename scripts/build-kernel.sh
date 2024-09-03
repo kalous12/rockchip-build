@@ -20,12 +20,12 @@ source ../conf/kernels/"${KERNEL_TARGET}.conf"
 
 if [ ! -d linux-rockchip ]; then
     git clone --progress -b "${KERNEL_TAG}" "${KERNEL_REPO}" "${KERNEL_CLONE_DIR}" --depth=1
-    if [ -f ../packages/linux/patches/series ] ;then
-        for i in `cat ../packages/linux/patches/series`;do  
-            echo "patch -d linux-rockchip -p1 < ../packages/linux/patches/$i";
-            patch -d linux-rockchip -p1 < ../packages/linux/patches/"$i";
-        done
-    fi
+    # if [ -f ../packages/linux/patches/series ] ;then
+    #     for i in `cat ../packages/linux/patches/series`;do  
+    #         echo "patch -d linux-rockchip -p1 < ../packages/linux/patches/$i";
+    #         patch -d linux-rockchip -p1 < ../packages/linux/patches/"$i";
+    #     done
+    # fi
 fi
 
 cd linux-rockchip

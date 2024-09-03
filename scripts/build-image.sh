@@ -90,6 +90,13 @@ EOF
 # Copy kernel and initrd to boot partition
 cp ${rootfs_dir}/boot/initrd.img-5.10.160* ${boot_dir}
 cp ${rootfs_dir}/boot/vmlinuz-5.10.160* ${boot_dir}
+echo "----------------------"
+echo "logo is $SYSTEM_LOGO"
+# logo setting
+if [ -n "$SYSTEM_LOGO" ]; then
+    echo ">>>>>>>>>>>>>>>>>>"
+    cp "../packages/boot/${SYSTEM_LOGO}" ${boot_dir}/logo.bmp
+fi
 
 # copy rk-kernel.dtb
 mv ${rootfs_dir}/boot/core/* ${boot_dir}
